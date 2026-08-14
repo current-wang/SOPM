@@ -1303,6 +1303,13 @@
       if (element) element.textContent = text;
     }
 
+    async function currentRemoteUserId() {
+      if (!supabaseClient) return "";
+      const { data, error } = await supabaseClient.auth.getUser();
+      if (error || !data.user) return "";
+      return data.user.id;
+    }
+
     function remotePayload(project) {
       const payload = deepClone(project);
       delete payload.ownerId;
@@ -1387,10 +1394,17 @@
       updateSyncState("Saving...");
 
       if (!project.remoteId) {
+        const remoteUserId = await currentRemoteUserId();
+        if (!remoteUserId) {
+          project.syncStatus = "pending";
+          updateSyncState("Login required");
+          saveStore();
+          return;
+        }
         const { data, error } = await supabaseClient
           .from("program_projects")
           .insert({
-            owner_id: session.userId,
+            owner_id: remoteUserId,
             name: project.name,
             summary: project.summary,
             target_completion: project.targetCompletion,
@@ -1401,6 +1415,7 @@
         if (error) {
           project.syncStatus = "pending";
           updateSyncState("Local pending");
+          alert(`远程保存失败：${error.message}`);
           saveStore();
           return;
         }
