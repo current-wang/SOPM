@@ -917,6 +917,7 @@
           <div class="actions">
             <button id="backToProjectsBtn" hidden>Projects</button>
             <button class="primary" id="createProjectBtn">Create Program</button>
+            <button id="importBtn">Import JSON</button>
             <button id="shareBtn" hidden>Share</button>
             <button id="exportBtn" hidden>Export JSON</button>
           </div>
@@ -1526,6 +1527,66 @@
       });
     }
 
+    function normalizeImportedProject(rawProject) {
+      const project = deepClone(rawProject);
+      project.id = crypto.randomUUID();
+      project.ownerId = session.userId;
+      project.name = project.name || "Imported Program";
+      project.summary = project.summary || "";
+      project.targetCompletion = project.targetCompletion || project.target || "";
+      project.createdAt = new Date().toISOString();
+      project.workstreams = Array.isArray(project.workstreams) ? project.workstreams : [];
+      project.milestones = Array.isArray(project.milestones) ? project.milestones : [];
+      project.updates = Array.isArray(project.updates) ? project.updates : [];
+      project.workstreams.forEach((ws, wsIndex) => {
+        ws.id = ws.id || `ws-${wsIndex + 1}`;
+        ws.name = ws.name || `Workstream ${wsIndex + 1}`;
+        ws.owner = ws.owner || "";
+        ws.goal = ws.goal || "";
+        ws.status = ws.status || "yellow";
+        ws.tasks = Array.isArray(ws.tasks) ? ws.tasks : [];
+        ws.tasks.forEach((task, taskIndex) => {
+          task.id = task.id || crypto.randomUUID();
+          task.name = task.name || `Task ${taskIndex + 1}`;
+          task.description = task.description || "";
+          task.owner = task.owner || "";
+          task.milestoneId = task.milestoneId || "";
+          task.targetDate = task.targetDate || "";
+          task.actualDate = task.actualDate || "";
+          task.subtasks = Array.isArray(task.subtasks) ? task.subtasks : [];
+          if (typeof task.progress !== "number") task.progress = task.done ? 100 : 0;
+          task.subtasks.forEach((subtask, subtaskIndex) => {
+            subtask.id = subtask.id || crypto.randomUUID();
+            subtask.name = subtask.name || `Subtask ${subtaskIndex + 1}`;
+            if (typeof subtask.progress !== "number") subtask.progress = subtask.done ? 100 : 0;
+            subtask.done = itemProgress(subtask) >= 100;
+          });
+          syncTaskDone(task);
+        });
+      });
+      project.milestones.forEach((milestone, index) => {
+        milestone.id = milestone.id || `m${index + 1}`;
+        milestone.name = milestone.name || `M${index + 1}`;
+        milestone.detail = milestone.detail || "";
+        milestone.status = milestone.status || "yellow";
+        milestone.targetDate = milestone.targetDate || "";
+        milestone.actualDate = milestone.actualDate || "";
+      });
+      return project;
+    }
+
+    function importProject(rawProject) {
+      if (!session || !currentUser()) {
+        alert("请先登录或进入离线模式后再导入。");
+        return;
+      }
+      const project = normalizeImportedProject(rawProject);
+      store.projects.push(project);
+      saveStore();
+      openProject(project.id);
+      syncProject(project);
+    }
+
     function render() {
       if (!session || !currentUser()) {
         authScreen.classList.add("active");
@@ -1553,6 +1614,7 @@
       document.getElementById("exportBtn").hidden = !project || activeView === "projects";
       document.getElementById("shareBtn").hidden = !project || activeView === "projects" || !isRemoteMode() || !canEditProject(project);
       document.getElementById("createProjectBtn").hidden = activeView !== "projects";
+      document.getElementById("importBtn").hidden = activeView !== "projects";
 
       if (activeView === "projects") {
         document.getElementById("pageTitle").textContent = "Projects";
@@ -1987,6 +2049,27 @@
     document.getElementById("createProjectBtn").addEventListener("click", () => {
       projectDialog.classList.add("open");
       document.getElementById("projectName").focus();
+    });
+
+    document.getElementById("importBtn").addEventListener("click", () => {
+      document.getElementById("fileInput").click();
+    });
+
+    document.getElementById("fileInput").addEventListener("change", async (event) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      try {
+        const rawProject = JSON.parse(await file.text());
+        if (!rawProject || !Array.isArray(rawProject.workstreams) || !Array.isArray(rawProject.milestones)) {
+          alert("导入失败：JSON 不是有效的 Program 项目结构。");
+          return;
+        }
+        importProject(rawProject);
+      } catch (error) {
+        alert(`导入失败：${error.message}`);
+      } finally {
+        event.target.value = "";
+      }
     });
 
     document.querySelectorAll("[data-close-dialog]").forEach((button) => {

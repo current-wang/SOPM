@@ -8,6 +8,7 @@ This is a standalone SaaS-style prototype. It does not modify the existing demo 
 - Sign in / sign out
 - Project list
 - Create Program projects
+- Import an existing Program JSON
 - Open a selected Program
 - Program structure with Workstreams, Tasks, Subtasks, Milestones, and Updates
 - Task description field for scope and acceptance notes
