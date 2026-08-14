@@ -1,0 +1,1740 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ProgramOS</title>
+  <style>
+    :root {
+      --ink: #1f2937;
+      --muted: #667085;
+      --line: #d8dee8;
+      --paper: #f5f7fb;
+      --panel: #ffffff;
+      --blue: #2563eb;
+      --green: #16a34a;
+      --yellow: #d97706;
+      --red: #dc2626;
+      --teal: #0f766e;
+      --shadow: 0 12px 28px rgba(31, 41, 55, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      letter-spacing: 0;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      min-height: 36px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: white;
+      color: var(--ink);
+      padding: 0 12px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      border-color: #b7c1d1;
+      box-shadow: 0 2px 8px rgba(31, 41, 55, 0.08);
+    }
+
+    button.primary {
+      border-color: var(--blue);
+      background: var(--blue);
+      color: white;
+    }
+
+    button.danger {
+      border-color: #fecaca;
+      background: #fff7f7;
+      color: var(--red);
+    }
+
+    button.icon {
+      width: 32px;
+      min-height: 32px;
+      padding: 0;
+      display: inline-grid;
+      place-items: center;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: white;
+      color: var(--ink);
+      padding: 9px 10px;
+      outline: none;
+    }
+
+    textarea {
+      min-height: 76px;
+      resize: vertical;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    }
+
+    [contenteditable="true"] {
+      border-radius: 6px;
+      outline: none;
+      cursor: text;
+    }
+
+    [contenteditable="true"]:hover {
+      background: #eef4ff;
+      box-shadow: 0 0 0 4px #eef4ff;
+    }
+
+    [contenteditable="true"]:focus {
+      background: white;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.16);
+    }
+
+    .screen {
+      display: none;
+    }
+
+    .screen.active {
+      display: block;
+    }
+
+    .auth-shell {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: minmax(320px, 440px) minmax(0, 1fr);
+      background: white;
+    }
+
+    .auth-panel {
+      padding: 42px;
+      border-right: 1px solid var(--line);
+      display: grid;
+      align-content: center;
+      gap: 24px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+    }
+
+    .brand-mark {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      background: #123c69;
+      color: white;
+      font-weight: 800;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 22px;
+      line-height: 1.15;
+    }
+
+    .brand p {
+      margin: 3px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .auth-form {
+      display: grid;
+      gap: 12px;
+    }
+
+    .auth-copy {
+      padding: 42px;
+      display: grid;
+      align-content: center;
+      gap: 18px;
+      background: var(--paper);
+    }
+
+    .auth-copy h2 {
+      margin: 0;
+      max-width: 680px;
+      font-size: 34px;
+      line-height: 1.18;
+    }
+
+    .auth-copy p {
+      margin: 0;
+      color: var(--muted);
+      max-width: 680px;
+      line-height: 1.6;
+    }
+
+    .auth-tabs {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .auth-tabs button.active {
+      border-color: #c7d7fe;
+      background: #eef4ff;
+      color: #1d4ed8;
+    }
+
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 260px minmax(0, 1fr);
+    }
+
+    .sidebar {
+      background: white;
+      border-right: 1px solid var(--line);
+      padding: 20px 16px;
+      height: 100vh;
+      position: sticky;
+      top: 0;
+      overflow: auto;
+    }
+
+    .nav {
+      display: grid;
+      gap: 6px;
+      margin-top: 24px;
+    }
+
+    .nav button {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 9px;
+      border-color: transparent;
+      background: transparent;
+      text-align: left;
+    }
+
+    .nav button.active {
+      border-color: #c7d7fe;
+      background: #eef4ff;
+      color: #1d4ed8;
+    }
+
+    .account-box {
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+      display: grid;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .main {
+      min-width: 0;
+      padding: 24px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-start;
+      margin-bottom: 18px;
+    }
+
+    .title h2 {
+      margin: 0;
+      font-size: 26px;
+      line-height: 1.2;
+    }
+
+    .title p {
+      margin: 7px 0 0;
+      color: var(--muted);
+      max-width: 820px;
+      line-height: 1.5;
+    }
+
+    .actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .metrics {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .metric {
+      min-height: 106px;
+      padding: 15px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .metric span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .metric strong {
+      font-size: 28px;
+    }
+
+    .bar {
+      height: 7px;
+      background: #e6ebf2;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .bar span {
+      display: block;
+      width: var(--w);
+      height: 100%;
+      background: var(--c);
+    }
+
+    .project-grid {
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
+
+    .project-card {
+      padding: 16px;
+      display: grid;
+      gap: 13px;
+      min-height: 210px;
+    }
+
+    .project-card h3 {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.3;
+    }
+
+    .project-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .project-meta {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      padding: 0 8px;
+      border-radius: 999px;
+      background: #eef2f7;
+      color: #42526e;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .workstream-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .workstream {
+      padding: 15px;
+      display: grid;
+      gap: 12px;
+      min-height: 260px;
+    }
+
+    .workstream-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .workstream-title {
+      min-width: 0;
+    }
+
+    .workstream h4 {
+      margin: 0;
+      font-size: 16px;
+      line-height: 1.35;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .status-select {
+      width: auto;
+      min-width: 150px;
+      max-width: 100%;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .task-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .task {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      align-items: start;
+      gap: 8px;
+      padding: 8px;
+      border: 1px solid #edf0f5;
+      border-radius: 6px;
+      background: #fbfcfe;
+    }
+
+    .task input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      padding: 0;
+      accent-color: var(--green);
+    }
+
+    .task-name {
+      min-width: 0;
+      overflow-wrap: anywhere;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .milestone-badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 20px;
+      margin-left: 6px;
+      padding: 0 6px;
+      border-radius: 999px;
+      background: #eef4ff;
+      color: #1d4ed8;
+      font-size: 11px;
+      font-weight: 700;
+      vertical-align: middle;
+    }
+
+    .task-meta,
+    .task-progress,
+    .subtask-list,
+    .subtask-form {
+      grid-column: 2 / 3;
+    }
+
+    .task-meta {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(104px, 1fr));
+      gap: 6px;
+    }
+
+    .task-meta input {
+      min-height: 28px;
+      padding: 5px 7px;
+      color: #42526e;
+      font-size: 12px;
+    }
+
+    .task-progress {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .task-progress .bar {
+      height: 5px;
+    }
+
+    .task.done .task-name,
+    .subtask.done span {
+      color: var(--muted);
+      text-decoration: line-through;
+    }
+
+    .subtask-list {
+      display: grid;
+      gap: 6px;
+    }
+
+    .subtask {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 7px;
+      color: #42526e;
+      font-size: 12px;
+    }
+
+    .subtask input[type="checkbox"] {
+      width: 14px;
+      height: 14px;
+    }
+
+    .subtask-form {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 6px;
+    }
+
+    .subtask-form input {
+      min-height: 28px;
+      padding: 5px 7px;
+      font-size: 12px;
+    }
+
+    .subtask-form button {
+      min-height: 28px;
+      width: 28px;
+      padding: 0;
+    }
+
+    .inline-form {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 8px;
+      align-items: center;
+    }
+
+    .milestones {
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+
+    .milestone {
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+      min-height: 180px;
+    }
+
+    .milestone h4 {
+      margin: 0;
+      font-size: 15px;
+    }
+
+    .milestone p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .date-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
+      gap: 8px;
+    }
+
+    .date-field {
+      display: grid;
+      gap: 4px;
+    }
+
+    .date-field label {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 650;
+    }
+
+    .date-field input {
+      min-height: 32px;
+      padding: 6px 8px;
+      font-size: 12px;
+    }
+
+    .updates-layout {
+      display: grid;
+      grid-template-columns: 360px minmax(0, 1fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    .form-panel,
+    .updates-panel,
+    .form-panel h3,
+    .updates-panel h3 {
+      margin: 0 0 12px;
+      font-size: 17px;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+    }
+
+    .field label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 650;
+    }
+
+    .compact-form {
+      display: grid;
+      gap: 8px;
+    }
+
+    .updates {
+      display: grid;
+      gap: 10px;
+    }
+
+    .update {
+      border: 1px solid #edf0f5;
+      border-radius: 8px;
+      padding: 12px;
+      background: #fbfcfe;
+      display: grid;
+      gap: 8px;
+    }
+
+    .update-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .update-body {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .note {
+      border-left: 3px solid var(--blue);
+      padding-left: 9px;
+      min-width: 0;
+    }
+
+    .note strong {
+      display: block;
+      margin-bottom: 3px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .note span {
+      display: block;
+      overflow-wrap: anywhere;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .drawer {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(31, 41, 55, 0.35);
+      z-index: 20;
+    }
+
+    .drawer.open {
+      display: flex;
+    }
+
+    .dialog {
+      width: min(640px, 100%);
+      max-height: calc(100vh - 40px);
+      overflow: auto;
+      padding: 18px;
+      border-radius: 8px;
+      background: white;
+      box-shadow: 0 20px 70px rgba(31, 41, 55, 0.2);
+      display: grid;
+      gap: 12px;
+    }
+
+    .dialog-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .dialog-head h3 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .empty {
+      padding: 18px;
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      background: #fbfcfe;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    @media (min-width: 1680px) {
+      .workstream-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 1120px) {
+      .metrics,
+      .milestones,
+      .update-body {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .updates-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .auth-shell,
+      .app {
+        grid-template-columns: 1fr;
+      }
+
+      .auth-copy {
+        display: none;
+      }
+
+      .sidebar {
+        position: static;
+        height: auto;
+      }
+
+      .main {
+        padding: 16px;
+      }
+
+      .topbar {
+        flex-direction: column;
+      }
+
+      .actions {
+        justify-content: flex-start;
+      }
+
+      .metrics,
+      .workstream-grid,
+      .milestones,
+      .update-body {
+        grid-template-columns: 1fr;
+      }
+
+      .workstream-top {
+        display: grid;
+        grid-template-columns: 1fr;
+      }
+
+      .status-select {
+        width: 100%;
+      }
+
+      .task-meta,
+      .task-progress,
+      .subtask-list,
+      .subtask-form {
+        grid-column: 2 / -1;
+      }
+    }
+  </style>
+</head>
+<body>
+  <section class="screen active" id="authScreen">
+    <div class="auth-shell">
+      <div class="auth-panel">
+        <div class="brand">
+          <div class="brand-mark">PO</div>
+          <div>
+            <h1>ProgramOS</h1>
+            <p>SaaS Program Management</p>
+          </div>
+        </div>
+        <div class="auth-tabs">
+          <button class="active" id="loginTab">Sign in</button>
+          <button id="signupTab">Create account</button>
+        </div>
+        <form class="auth-form" id="authForm">
+          <input id="authName" placeholder="Name" hidden>
+          <input id="authEmail" type="email" placeholder="Email" required>
+          <input id="authPassword" type="password" placeholder="Password" required>
+          <button class="primary" type="submit" id="authSubmit">Sign in</button>
+        </form>
+      </div>
+      <div class="auth-copy">
+        <h2>用一个轻量工作台管理多个 Program。</h2>
+        <p>创建项目、拆分工作流、跟进任务和里程碑，用周会更新沉淀真实进展。</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen" id="appScreen">
+    <div class="app">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-mark">PO</div>
+          <div>
+            <h1>ProgramOS</h1>
+            <p id="workspaceName">Workspace</p>
+          </div>
+        </div>
+        <nav class="nav" aria-label="主要视图">
+          <button class="active" data-view="projects">□ Projects</button>
+          <button data-view="overview">⌁ Overview</button>
+          <button data-view="structure">▦ Workstreams</button>
+          <button data-view="milestones">◇ Milestones</button>
+          <button data-view="updates">✎ Updates</button>
+        </nav>
+        <div class="account-box">
+          <div id="accountEmail"></div>
+          <button id="logoutBtn">Sign out</button>
+        </div>
+      </aside>
+
+      <main class="main">
+        <div class="topbar">
+          <div class="title">
+            <h2 id="pageTitle">Projects</h2>
+            <p id="pageSubtitle">选择项目或创建新的 Program。</p>
+          </div>
+          <div class="actions">
+            <button id="backToProjectsBtn" hidden>Projects</button>
+            <button class="primary" id="createProjectBtn">Create Program</button>
+            <button id="exportBtn" hidden>Export JSON</button>
+          </div>
+        </div>
+
+        <section class="screen active" id="projectsView">
+          <div class="grid metrics">
+            <div class="panel metric">
+              <span>Total Programs</span>
+              <strong id="projectCount">0</strong>
+            </div>
+            <div class="panel metric">
+              <span>Active Workstreams</span>
+              <strong id="workstreamCount">0</strong>
+            </div>
+            <div class="panel metric">
+              <span>Open Tasks</span>
+              <strong id="openTaskCount">0</strong>
+            </div>
+            <div class="panel metric">
+              <span>Avg Progress</span>
+              <strong id="avgProgress">0%</strong>
+            </div>
+          </div>
+          <div class="grid project-grid" id="projectGrid" style="margin-top:18px;"></div>
+        </section>
+
+        <section class="screen" id="overviewView">
+          <div class="grid metrics">
+            <div class="panel metric">
+              <span>Overall Progress</span>
+              <strong id="overallProgress">0%</strong>
+              <div class="bar"><span id="overallBar"></span></div>
+            </div>
+            <div class="panel metric">
+              <span>Milestones Done</span>
+              <strong id="milestoneProgress">0/0</strong>
+              <div class="bar"><span id="milestoneBar"></span></div>
+            </div>
+            <div class="panel metric">
+              <span>Open Blockers</span>
+              <strong id="blockerCount">0</strong>
+            </div>
+            <div class="panel metric">
+              <span>Target Completion</span>
+              <strong id="targetCompletion">-</strong>
+            </div>
+          </div>
+          <div class="grid workstream-grid" id="overviewWorkstreams" style="margin-top:18px;"></div>
+        </section>
+
+        <section class="screen" id="structureView">
+          <div class="grid workstream-grid" id="workstreamGrid"></div>
+        </section>
+
+        <section class="screen" id="milestonesView">
+          <div class="grid milestones" id="milestoneGrid"></div>
+        </section>
+
+        <section class="screen" id="updatesView">
+          <div class="updates-layout">
+            <form class="panel form-panel compact-form" id="updateForm">
+              <h3>Weekly Steering Update</h3>
+              <div class="field">
+                <label for="submitterName">Name</label>
+                <input id="submitterName" required>
+              </div>
+              <div class="field">
+                <label for="updateWorkstream">Workstream</label>
+                <select id="updateWorkstream" required></select>
+              </div>
+              <div class="field">
+                <label for="updateStatus">Status</label>
+                <select id="updateStatus">
+                  <option value="green">Green / On Track</option>
+                  <option value="yellow">Yellow / At Risk</option>
+                  <option value="red">Red / Blocked</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="doneText">完成了什么</label>
+                <textarea id="doneText" required></textarea>
+              </div>
+              <div class="field">
+                <label for="nextText">下周做什么</label>
+                <textarea id="nextText" required></textarea>
+              </div>
+              <div class="field">
+                <label for="blockerText">Blocker</label>
+                <textarea id="blockerText"></textarea>
+              </div>
+              <div class="field">
+                <label for="supportText">需要谁支持</label>
+                <textarea id="supportText"></textarea>
+              </div>
+              <button class="primary" type="submit">Save Update</button>
+            </form>
+            <div class="panel updates-panel">
+              <h3>Latest Updates</h3>
+              <div class="updates" id="updatesList"></div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </section>
+
+  <div class="drawer" id="projectDialog">
+    <form class="dialog compact-form" id="projectForm">
+      <div class="dialog-head">
+        <h3>Quick Create</h3>
+        <button class="icon" type="button" data-close-dialog>×</button>
+      </div>
+      <div class="field">
+        <label for="projectName">Program Name</label>
+        <input id="projectName" placeholder="例如：AI Product Launch" required>
+      </div>
+      <div class="field">
+        <label for="projectSummary">Short Intro</label>
+        <textarea id="projectSummary" placeholder="一句话说明目标、范围和成功标准。" required></textarea>
+      </div>
+      <div class="field">
+        <label for="projectTarget">Target</label>
+        <input id="projectTarget" placeholder="例如：2026 Q4" required>
+      </div>
+      <button class="primary" type="submit">Create</button>
+    </form>
+  </div>
+
+  <input id="fileInput" type="file" accept="application/json" hidden>
+
+  <script>
+    const storageKey = "programos-saas-v1";
+    const sessionKey = "programos-session-v1";
+
+    const defaultProgramTemplate = {
+      name: "AI Product Launch Program",
+      summary: "Launch an AI-enabled workflow product with validated scope, delivery plan, operating model, and first customer-ready release.",
+      targetCompletion: "2026 Q4",
+      workstreams: [
+        {
+          id: "strategy",
+          name: "Strategy & Governance",
+          owner: "Program Lead",
+          goal: "Define the program charter, success metrics, stakeholders, and decision cadence.",
+          status: "yellow",
+          tasks: [
+            { id: "st-1", name: "Program charter", owner: "Program Lead", milestoneId: "m1", targetDate: "", actualDate: "", subtasks: [], done: false },
+            { id: "st-2", name: "Success metrics", owner: "Sponsor", milestoneId: "m1", targetDate: "", actualDate: "", subtasks: [], done: false },
+            { id: "st-3", name: "Steering cadence", owner: "PMO", milestoneId: "m1", targetDate: "", actualDate: "", subtasks: [], done: false }
+          ]
+        },
+        {
+          id: "delivery",
+          name: "Delivery & Operations",
+          owner: "Delivery Lead",
+          goal: "Coordinate execution, dependency tracking, launch readiness, and operating handover.",
+          status: "yellow",
+          tasks: [
+            { id: "dl-1", name: "Launch checklist", owner: "Delivery Lead", milestoneId: "m2", targetDate: "", actualDate: "", subtasks: [], done: false },
+            { id: "dl-2", name: "Operating model", owner: "Operations", milestoneId: "m3", targetDate: "", actualDate: "", subtasks: [], done: false },
+            { id: "dl-3", name: "Risk register", owner: "PMO", milestoneId: "m1", targetDate: "", actualDate: "", subtasks: [], done: false }
+          ]
+        },
+        {
+          id: "product",
+          name: "Product & Technology",
+          owner: "Product Lead / CTO",
+          goal: "Build the roadmap, backlog, release process, demo, and technical assets.",
+          status: "yellow",
+          tasks: [
+            { id: "pt-1", name: "Roadmap", owner: "Product Lead", milestoneId: "m1", targetDate: "", actualDate: "", subtasks: [], done: false },
+            { id: "pt-2", name: "Backlog", owner: "Product Manager", milestoneId: "m2", targetDate: "", actualDate: "", subtasks: [], done: false },
+            { id: "pt-3", name: "Demo release", owner: "Engineering", milestoneId: "m2", targetDate: "", actualDate: "", subtasks: [], done: false }
+          ]
+        },
+        {
+          id: "gtm",
+          name: "Go-to-Market",
+          owner: "GTM Lead",
+          goal: "Prepare customer messaging, pilot plan, pricing, and launch communications.",
+          status: "yellow",
+          tasks: [
+            { id: "gt-1", name: "Pilot customer plan", owner: "Sales", milestoneId: "m3", targetDate: "", actualDate: "", subtasks: [], done: false },
+            { id: "gt-2", name: "Launch messaging", owner: "Marketing", milestoneId: "m3", targetDate: "", actualDate: "", subtasks: [], done: false },
+            { id: "gt-3", name: "Pricing draft", owner: "GTM Lead", milestoneId: "m2", targetDate: "", actualDate: "", subtasks: [], done: false }
+          ]
+        }
+      ],
+      milestones: [
+        { id: "m1", name: "M1 Charter Approved", detail: "Scope, success metrics, owners, and governance confirmed.", status: "yellow", targetDate: "", actualDate: "" },
+        { id: "m2", name: "M2 MVP Ready", detail: "Core workflow, demo, and release checklist ready for pilot.", status: "red", targetDate: "", actualDate: "" },
+        { id: "m3", name: "M3 Pilot Launch", detail: "Pilot users onboarded and first success signals collected.", status: "red", targetDate: "", actualDate: "" }
+      ],
+      updates: []
+    };
+
+    let store = loadStore();
+    let session = loadSession();
+    let authMode = "login";
+    let activeProjectId = session?.activeProjectId || "";
+    let activeView = "projects";
+
+    const authScreen = document.getElementById("authScreen");
+    const appScreen = document.getElementById("appScreen");
+    const projectDialog = document.getElementById("projectDialog");
+
+    function deepClone(value) {
+      return JSON.parse(JSON.stringify(value));
+    }
+
+    function loadStore() {
+      try {
+        return JSON.parse(localStorage.getItem(storageKey)) || { users: [], projects: [] };
+      } catch (error) {
+        return { users: [], projects: [] };
+      }
+    }
+
+    function saveStore() {
+      localStorage.setItem(storageKey, JSON.stringify(store));
+    }
+
+    function loadSession() {
+      try {
+        return JSON.parse(localStorage.getItem(sessionKey));
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function saveSession(nextSession) {
+      session = nextSession;
+      if (session) localStorage.setItem(sessionKey, JSON.stringify(session));
+      else localStorage.removeItem(sessionKey);
+    }
+
+    function currentUser() {
+      return store.users.find((user) => user.id === session?.userId);
+    }
+
+    function currentProjects() {
+      return store.projects.filter((project) => project.ownerId === session?.userId);
+    }
+
+    function currentProject() {
+      return currentProjects().find((project) => project.id === activeProjectId) || null;
+    }
+
+    function percent(done, total) {
+      return total === 0 ? 0 : Math.round((done / total) * 100);
+    }
+
+    function taskProgress(task) {
+      const subtasks = task.subtasks || [];
+      if (subtasks.length === 0) return task.done ? 100 : 0;
+      return percent(subtasks.filter((subtask) => subtask.done).length, subtasks.length);
+    }
+
+    function syncTaskDone(task) {
+      const subtasks = task.subtasks || [];
+      if (subtasks.length > 0) task.done = subtasks.every((subtask) => subtask.done);
+    }
+
+    function workstreamProgress(ws) {
+      if (ws.tasks.length === 0) return 0;
+      return Math.round(ws.tasks.reduce((sum, task) => sum + taskProgress(task), 0) / ws.tasks.length);
+    }
+
+    function projectProgress(project) {
+      const tasks = project.workstreams.flatMap((ws) => ws.tasks);
+      if (tasks.length === 0) return 0;
+      return Math.round(tasks.reduce((sum, task) => sum + taskProgress(task), 0) / tasks.length);
+    }
+
+    function statusLabel(status) {
+      if (status === "green") return "🟢";
+      if (status === "yellow") return "🟡";
+      return "🔴";
+    }
+
+    function statusColor(status) {
+      if (status === "green") return "var(--green)";
+      if (status === "yellow") return "var(--yellow)";
+      return "var(--red)";
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function setEditableText(element, value) {
+      if (document.activeElement === element) return;
+      element.textContent = value || "";
+    }
+
+    function editableValue(element) {
+      return element.innerText.replace(/\n{3,}/g, "\n\n").trim();
+    }
+
+    function saveAndRender() {
+      saveStore();
+      render();
+    }
+
+    function normalizeProject(project) {
+      if (!project) return;
+      project.workstreams.forEach((ws) => {
+        ws.tasks.forEach((task) => {
+          task.subtasks = task.subtasks || [];
+          task.milestoneId = task.milestoneId || "";
+        });
+      });
+    }
+
+    function render() {
+      if (!session || !currentUser()) {
+        authScreen.classList.add("active");
+        appScreen.classList.remove("active");
+        return;
+      }
+
+      authScreen.classList.remove("active");
+      appScreen.classList.add("active");
+      document.getElementById("accountEmail").textContent = currentUser().email;
+      document.getElementById("workspaceName").textContent = `${currentUser().name}'s workspace`;
+
+      const project = currentProject();
+      document.querySelectorAll("[data-view]").forEach((button) => {
+        button.classList.toggle("active", button.dataset.view === activeView);
+        button.disabled = button.dataset.view !== "projects" && !project;
+      });
+
+      document.querySelectorAll("#appScreen main > .screen").forEach((view) => view.classList.remove("active"));
+      document.getElementById(`${activeView}View`).classList.add("active");
+      document.getElementById("backToProjectsBtn").hidden = activeView === "projects";
+      document.getElementById("exportBtn").hidden = !project || activeView === "projects";
+      document.getElementById("createProjectBtn").hidden = activeView !== "projects";
+
+      if (activeView === "projects") {
+        document.getElementById("pageTitle").textContent = "Projects";
+        document.getElementById("pageSubtitle").textContent = "选择项目或创建新的 Program。";
+        renderProjects();
+        return;
+      }
+
+      if (!project) {
+        activeView = "projects";
+        render();
+        return;
+      }
+
+      normalizeProject(project);
+      setEditableText(document.getElementById("pageTitle"), project.name);
+      setEditableText(document.getElementById("pageSubtitle"), project.summary);
+      document.getElementById("pageTitle").contentEditable = true;
+      document.getElementById("pageSubtitle").contentEditable = true;
+      document.getElementById("pageTitle").dataset.action = "edit-project-field";
+      document.getElementById("pageTitle").dataset.field = "name";
+      document.getElementById("pageSubtitle").dataset.action = "edit-project-field";
+      document.getElementById("pageSubtitle").dataset.field = "summary";
+
+      renderProgram(project);
+    }
+
+    function renderProjects() {
+      document.getElementById("pageTitle").contentEditable = false;
+      document.getElementById("pageSubtitle").contentEditable = false;
+      const projects = currentProjects();
+      const workstreamCount = projects.reduce((sum, project) => sum + project.workstreams.length, 0);
+      const openTaskCount = projects.flatMap((project) => project.workstreams.flatMap((ws) => ws.tasks)).filter((task) => taskProgress(task) < 100).length;
+      const avg = projects.length === 0 ? 0 : Math.round(projects.reduce((sum, project) => sum + projectProgress(project), 0) / projects.length);
+      document.getElementById("projectCount").textContent = projects.length;
+      document.getElementById("workstreamCount").textContent = workstreamCount;
+      document.getElementById("openTaskCount").textContent = openTaskCount;
+      document.getElementById("avgProgress").textContent = `${avg}%`;
+
+      document.getElementById("projectGrid").innerHTML = projects.length
+        ? projects.map((project) => {
+          const progress = projectProgress(project);
+          return `
+            <article class="panel project-card">
+              <div>
+                <h3>${escapeHtml(project.name)}</h3>
+                <p>${escapeHtml(project.summary)}</p>
+              </div>
+              <div class="project-meta">
+                <span class="tag">${escapeHtml(project.targetCompletion || "-")}</span>
+                <span class="tag">${project.workstreams.length} Workstreams</span>
+                <span class="tag">${progress}% Progress</span>
+              </div>
+              <div class="bar"><span style="--w:${progress}%;--c:var(--blue);"></span></div>
+              <div class="actions" style="justify-content:flex-start;">
+                <button class="primary" data-action="open-project" data-project="${project.id}">Open</button>
+                <button class="danger" data-action="delete-project" data-project="${project.id}">Delete</button>
+              </div>
+            </article>
+          `;
+        }).join("")
+        : `<div class="empty">No programs yet. Create your first Program.</div>`;
+    }
+
+    function renderProgram(project) {
+      renderMetrics(project);
+      renderWorkstreams("overviewWorkstreams", project, false);
+      renderWorkstreams("workstreamGrid", project, true);
+      renderMilestones(project);
+      renderUpdates(project);
+      renderUpdateOptions(project);
+    }
+
+    function renderMetrics(project) {
+      const tasks = project.workstreams.flatMap((ws) => ws.tasks);
+      const overall = projectProgress(project);
+      const doneMilestones = project.milestones.filter((m) => m.status === "green").length;
+      const milestonePct = percent(doneMilestones, project.milestones.length);
+      const blockers = project.updates.filter((update) => update.blocker && update.blocker.toLowerCase() !== "none").length;
+      document.getElementById("overallProgress").textContent = `${overall}%`;
+      document.getElementById("overallBar").style.cssText = `--w:${overall}%;--c:var(--blue);`;
+      document.getElementById("milestoneProgress").textContent = `${doneMilestones}/${project.milestones.length}`;
+      document.getElementById("milestoneBar").style.cssText = `--w:${milestonePct}%;--c:var(--teal);`;
+      document.getElementById("blockerCount").textContent = blockers;
+      document.getElementById("targetCompletion").textContent = project.targetCompletion || "-";
+    }
+
+    function renderWorkstreams(targetId, project, editable) {
+      document.getElementById(targetId).innerHTML = project.workstreams.map((ws) => {
+        const progress = workstreamProgress(ws);
+        const tasks = ws.tasks.map((task) => {
+          const taskPct = taskProgress(task);
+          const milestone = findMilestone(project, task.milestoneId);
+          const milestoneOptions = renderMilestoneOptions(project, task.milestoneId);
+          const milestoneLabel = milestone ? milestone.name.split(" ")[0] : "";
+          const subtasks = task.subtasks || [];
+          const subtaskItems = subtasks.map((subtask) => `
+            <div class="subtask ${subtask.done ? "done" : ""}">
+              <input type="checkbox" ${subtask.done ? "checked" : ""} ${editable ? "" : "disabled"} data-action="toggle-subtask" data-ws="${ws.id}" data-task="${task.id}" data-subtask="${subtask.id}">
+              <span>${escapeHtml(subtask.name)}</span>
+              ${editable ? `<button class="icon" type="button" data-action="delete-subtask" data-ws="${ws.id}" data-task="${task.id}" data-subtask="${subtask.id}">×</button>` : ""}
+            </div>
+          `).join("");
+          return `
+            <div class="task ${task.done ? "done" : ""}">
+              <input type="checkbox" ${task.done ? "checked" : ""} ${editable ? "" : "disabled"} data-action="toggle-task" data-ws="${ws.id}" data-task="${task.id}">
+              <span class="task-name">${escapeHtml(task.name)}${milestoneLabel ? `<span class="milestone-badge">${escapeHtml(milestoneLabel)}</span>` : ""}</span>
+              ${editable ? `<button class="icon" type="button" data-action="delete-task" data-ws="${ws.id}" data-task="${task.id}">×</button>` : ""}
+              ${editable ? `
+                <div class="task-meta">
+                  <input value="${escapeHtml(task.owner || "")}" placeholder="Owner" data-action="update-task-owner" data-ws="${ws.id}" data-task="${task.id}">
+                  <select data-action="update-task-milestone" data-ws="${ws.id}" data-task="${task.id}">
+                    <option value="">No Milestone</option>
+                    ${milestoneOptions}
+                  </select>
+                  <input type="date" value="${escapeHtml(task.targetDate || "")}" data-action="update-task-date" data-field="targetDate" data-ws="${ws.id}" data-task="${task.id}">
+                  <input type="date" value="${escapeHtml(task.actualDate || "")}" data-action="update-task-date" data-field="actualDate" data-ws="${ws.id}" data-task="${task.id}">
+                </div>
+              ` : `
+                <div class="task-meta">
+                  <span class="tag">Owner: ${escapeHtml(task.owner || "-")}</span>
+                  <span class="tag">Target: ${escapeHtml(task.targetDate || "-")}</span>
+                  <span class="tag">Actual: ${escapeHtml(task.actualDate || "-")}</span>
+                </div>
+              `}
+              <div class="task-progress">
+                <div class="bar"><span style="--w:${taskPct}%;--c:var(--teal);"></span></div>
+                <strong>${taskPct}%</strong>
+              </div>
+              ${subtasks.length ? `<div class="subtask-list">${subtaskItems}</div>` : ""}
+              ${editable ? `<form class="subtask-form" data-action="add-subtask" data-ws="${ws.id}" data-task="${task.id}">
+                <input name="subtask" placeholder="新增子任务" required>
+                <button type="submit">＋</button>
+              </form>` : ""}
+            </div>
+          `;
+        }).join("");
+        return `
+          <article class="panel workstream">
+            <div class="workstream-top">
+              <div class="workstream-title">
+                <span class="tag" contenteditable="${editable}" data-action="edit-workstream-field" data-ws="${ws.id}" data-field="owner">${escapeHtml(ws.owner)}</span>
+                <h4 contenteditable="${editable}" data-action="edit-workstream-field" data-ws="${ws.id}" data-field="name">${escapeHtml(ws.name)}</h4>
+              </div>
+              ${editable ? `<select class="status-select" data-action="set-ws-status" data-ws="${ws.id}">
+                <option value="green" ${ws.status === "green" ? "selected" : ""}>🟢 Green / On Track</option>
+                <option value="yellow" ${ws.status === "yellow" ? "selected" : ""}>🟡 Yellow / At Risk</option>
+                <option value="red" ${ws.status === "red" ? "selected" : ""}>🔴 Red / Blocked</option>
+              </select>` : `<span class="tag">${statusLabel(ws.status)} ${escapeHtml(ws.status)}</span>`}
+            </div>
+            <div class="muted" contenteditable="${editable}" data-action="edit-workstream-field" data-ws="${ws.id}" data-field="goal">${escapeHtml(ws.goal)}</div>
+            <div class="bar"><span style="--w:${progress}%;--c:${statusColor(ws.status)};"></span></div>
+            <div class="task-list">${tasks || `<div class="empty">No tasks</div>`}</div>
+            ${editable ? `<form class="inline-form" data-action="add-task" data-ws="${ws.id}">
+              <input name="task" placeholder="新增 deliverable / task" required>
+              <input name="owner" placeholder="Owner">
+              <select name="milestone">
+                <option value="">Milestone</option>
+                ${renderMilestoneOptions(project, "")}
+              </select>
+              <input name="targetDate" type="date">
+              <input name="actualDate" type="date">
+              <button type="submit">＋</button>
+            </form>` : ""}
+          </article>
+        `;
+      }).join("");
+    }
+
+    function renderMilestones(project) {
+      document.getElementById("milestoneGrid").innerHTML = project.milestones.map((m) => `
+        <article class="panel milestone">
+          <select class="status-select" data-action="set-milestone-status" data-milestone="${m.id}">
+            <option value="green" ${m.status === "green" ? "selected" : ""}>🟢 Green / Done</option>
+            <option value="yellow" ${m.status === "yellow" ? "selected" : ""}>🟡 Yellow / At Risk</option>
+            <option value="red" ${m.status === "red" ? "selected" : ""}>🔴 Red / Blocked</option>
+          </select>
+          <h4 contenteditable="true" data-action="edit-milestone-field" data-milestone="${m.id}" data-field="name">${escapeHtml(m.name)}</h4>
+          <p contenteditable="true" data-action="edit-milestone-field" data-milestone="${m.id}" data-field="detail">${escapeHtml(m.detail)}</p>
+          <div class="date-row">
+            <div class="date-field">
+              <label>目标完成时间</label>
+              <input type="date" value="${escapeHtml(m.targetDate || "")}" data-action="update-milestone-date" data-field="targetDate" data-milestone="${m.id}">
+            </div>
+            <div class="date-field">
+              <label>实际完成时间</label>
+              <input type="date" value="${escapeHtml(m.actualDate || "")}" data-action="update-milestone-date" data-field="actualDate" data-milestone="${m.id}">
+            </div>
+          </div>
+        </article>
+      `).join("");
+    }
+
+    function renderUpdates(project) {
+      const list = document.getElementById("updatesList");
+      if (project.updates.length === 0) {
+        list.innerHTML = `<div class="empty">No weekly updates yet</div>`;
+        return;
+      }
+      list.innerHTML = [...project.updates].reverse().map((update) => `
+        <article class="update">
+          <div class="update-head">
+            <strong>${statusLabel(update.status)} ${escapeHtml(update.workstreamName)}</strong>
+            <span>${escapeHtml(update.submitterName || "Unknown")} · ${escapeHtml(update.date)}</span>
+          </div>
+          <div class="update-body">
+            <div class="note"><strong>完成了什么</strong><span>${escapeHtml(update.done)}</span></div>
+            <div class="note"><strong>下周做什么</strong><span>${escapeHtml(update.next)}</span></div>
+            <div class="note"><strong>Blocker</strong><span>${escapeHtml(update.blocker || "None")}</span></div>
+            <div class="note"><strong>需要谁支持</strong><span>${escapeHtml(update.support || "None")}</span></div>
+          </div>
+        </article>
+      `).join("");
+    }
+
+    function renderUpdateOptions(project) {
+      document.getElementById("updateWorkstream").innerHTML = project.workstreams.map((ws) => `
+        <option value="${ws.id}">${escapeHtml(ws.name)}</option>
+      `).join("");
+    }
+
+    function findMilestone(project, milestoneId) {
+      return project.milestones.find((milestone) => milestone.id === milestoneId);
+    }
+
+    function renderMilestoneOptions(project, selectedId) {
+      return project.milestones.map((milestone) => `
+        <option value="${milestone.id}" ${milestone.id === selectedId ? "selected" : ""}>${escapeHtml(milestone.name.split(" ")[0])}</option>
+      `).join("");
+    }
+
+    function findWorkstream(id) {
+      return currentProject()?.workstreams.find((ws) => ws.id === id);
+    }
+
+    function findTask(wsId, taskId) {
+      return findWorkstream(wsId)?.tasks.find((task) => task.id === taskId);
+    }
+
+    function openProject(projectId) {
+      activeProjectId = projectId;
+      session.activeProjectId = projectId;
+      saveSession(session);
+      activeView = "overview";
+      render();
+    }
+
+    function createProject({ name, summary, targetCompletion }) {
+      const template = deepClone(defaultProgramTemplate);
+      template.id = crypto.randomUUID();
+      template.ownerId = session.userId;
+      template.name = name;
+      template.summary = summary;
+      template.targetCompletion = targetCompletion;
+      template.createdAt = new Date().toISOString();
+      store.projects.push(template);
+      saveStore();
+      openProject(template.id);
+    }
+
+    function createDemoProjectForUser(userId) {
+      const demo = deepClone(defaultProgramTemplate);
+      demo.id = crypto.randomUUID();
+      demo.ownerId = userId;
+      demo.createdAt = new Date().toISOString();
+      demo.workstreams[0].tasks[0].subtasks = [
+        { id: crypto.randomUUID(), name: "Confirm sponsor", done: true },
+        { id: crypto.randomUUID(), name: "Draft one-page charter", done: false }
+      ];
+      demo.workstreams[2].tasks[0].subtasks = [
+        { id: crypto.randomUUID(), name: "Define release themes", done: true },
+        { id: crypto.randomUUID(), name: "Review roadmap with engineering", done: false }
+      ];
+      demo.updates = [
+        {
+          id: crypto.randomUUID(),
+          date: new Date().toISOString().slice(0, 10),
+          submitterName: "Demo User",
+          workstreamId: "product",
+          workstreamName: "Product & Technology",
+          status: "yellow",
+          done: "Roadmap themes drafted.",
+          next: "Align MVP scope with delivery lead.",
+          blocker: "Pending pilot user feedback.",
+          support: "Product / Sales"
+        }
+      ];
+      store.projects.push(demo);
+      return demo.id;
+    }
+
+    document.getElementById("loginTab").addEventListener("click", () => {
+      authMode = "login";
+      document.getElementById("loginTab").classList.add("active");
+      document.getElementById("signupTab").classList.remove("active");
+      document.getElementById("authName").hidden = true;
+      document.getElementById("authSubmit").textContent = "Sign in";
+    });
+
+    document.getElementById("signupTab").addEventListener("click", () => {
+      authMode = "signup";
+      document.getElementById("signupTab").classList.add("active");
+      document.getElementById("loginTab").classList.remove("active");
+      document.getElementById("authName").hidden = false;
+      document.getElementById("authSubmit").textContent = "Create account";
+    });
+
+    document.getElementById("authForm").addEventListener("submit", (event) => {
+      event.preventDefault();
+      const email = document.getElementById("authEmail").value.trim().toLowerCase();
+      const password = document.getElementById("authPassword").value;
+      if (authMode === "signup") {
+        if (store.users.some((user) => user.email === email)) {
+          alert("Account already exists.");
+          return;
+        }
+        const user = {
+          id: crypto.randomUUID(),
+          name: document.getElementById("authName").value.trim() || email.split("@")[0],
+          email,
+          password
+        };
+        store.users.push(user);
+        const demoProjectId = createDemoProjectForUser(user.id);
+        saveStore();
+        saveSession({ userId: user.id, activeProjectId: demoProjectId });
+        activeProjectId = demoProjectId;
+        activeView = "overview";
+        render();
+        return;
+      }
+
+      const user = store.users.find((item) => item.email === email && item.password === password);
+      if (!user) {
+        alert("Invalid email or password.");
+        return;
+      }
+      saveSession({ userId: user.id, activeProjectId: activeProjectId || "" });
+      activeView = "projects";
+      render();
+    });
+
+    document.getElementById("logoutBtn").addEventListener("click", () => {
+      saveSession(null);
+      activeProjectId = "";
+      activeView = "projects";
+      render();
+    });
+
+    document.querySelectorAll("[data-view]").forEach((button) => {
+      button.addEventListener("click", () => {
+        if (button.disabled) return;
+        activeView = button.dataset.view;
+        render();
+      });
+    });
+
+    document.getElementById("backToProjectsBtn").addEventListener("click", () => {
+      activeView = "projects";
+      render();
+    });
+
+    document.getElementById("createProjectBtn").addEventListener("click", () => {
+      projectDialog.classList.add("open");
+      document.getElementById("projectName").focus();
+    });
+
+    document.querySelectorAll("[data-close-dialog]").forEach((button) => {
+      button.addEventListener("click", () => projectDialog.classList.remove("open"));
+    });
+
+    document.getElementById("projectForm").addEventListener("submit", (event) => {
+      event.preventDefault();
+      createProject({
+        name: document.getElementById("projectName").value.trim(),
+        summary: document.getElementById("projectSummary").value.trim(),
+        targetCompletion: document.getElementById("projectTarget").value.trim()
+      });
+      event.target.reset();
+      projectDialog.classList.remove("open");
+    });
+
+    document.body.addEventListener("focusout", (event) => {
+      const action = event.target.dataset.action;
+      if (!action || event.target.contentEditable !== "true") return;
+      const project = currentProject();
+      if (!project) return;
+      const value = editableValue(event.target);
+
+      if (action === "edit-project-field") project[event.target.dataset.field] = value;
+      if (action === "edit-workstream-field") {
+        const ws = findWorkstream(event.target.dataset.ws);
+        if (ws) ws[event.target.dataset.field] = value;
+      }
+      if (action === "edit-milestone-field") {
+        const milestone = project.milestones.find((item) => item.id === event.target.dataset.milestone);
+        if (milestone) milestone[event.target.dataset.field] = value;
+      }
+      saveAndRender();
+    });
+
+    document.body.addEventListener("keydown", (event) => {
+      const action = event.target.dataset.action;
+      if (!action || event.target.contentEditable !== "true") return;
+      const field = event.target.dataset.field;
+      if ((field === "name" || field === "owner") && event.key === "Enter") {
+        event.preventDefault();
+        event.target.blur();
+      }
+    });
+
+    document.body.addEventListener("change", (event) => {
+      const action = event.target.dataset.action;
+      if (!action) return;
+      const project = currentProject();
+      if (!project) return;
+
+      if (action === "toggle-task") {
+        const task = findTask(event.target.dataset.ws, event.target.dataset.task);
+        task.done = event.target.checked;
+        (task.subtasks || []).forEach((subtask) => { subtask.done = task.done; });
+      }
+      if (action === "toggle-subtask") {
+        const task = findTask(event.target.dataset.ws, event.target.dataset.task);
+        const subtask = (task.subtasks || []).find((item) => item.id === event.target.dataset.subtask);
+        subtask.done = event.target.checked;
+        syncTaskDone(task);
+      }
+      if (action === "set-ws-status") {
+        findWorkstream(event.target.dataset.ws).status = event.target.value;
+      }
+      if (action === "set-milestone-status") {
+        project.milestones.find((item) => item.id === event.target.dataset.milestone).status = event.target.value;
+      }
+      if (action === "update-task-owner") {
+        findTask(event.target.dataset.ws, event.target.dataset.task).owner = event.target.value.trim();
+      }
+      if (action === "update-task-milestone") {
+        findTask(event.target.dataset.ws, event.target.dataset.task).milestoneId = event.target.value;
+      }
+      if (action === "update-task-date") {
+        findTask(event.target.dataset.ws, event.target.dataset.task)[event.target.dataset.field] = event.target.value;
+      }
+      if (action === "update-milestone-date") {
+        project.milestones.find((item) => item.id === event.target.dataset.milestone)[event.target.dataset.field] = event.target.value;
+      }
+      saveAndRender();
+    });
+
+    document.body.addEventListener("click", (event) => {
+      const action = event.target.dataset.action;
+      if (!action) return;
+
+      if (action === "open-project") {
+        openProject(event.target.dataset.project);
+        return;
+      }
+
+      if (action === "delete-project") {
+        const project = store.projects.find((item) => item.id === event.target.dataset.project);
+        if (!confirm(`Delete "${project.name}"?`)) return;
+        store.projects = store.projects.filter((item) => item.id !== project.id);
+        if (activeProjectId === project.id) activeProjectId = "";
+        saveStore();
+        render();
+        return;
+      }
+
+      const ws = findWorkstream(event.target.dataset.ws);
+      if (action === "delete-task") {
+        ws.tasks = ws.tasks.filter((task) => task.id !== event.target.dataset.task);
+        saveAndRender();
+      }
+      if (action === "delete-subtask") {
+        const task = findTask(event.target.dataset.ws, event.target.dataset.task);
+        task.subtasks = (task.subtasks || []).filter((subtask) => subtask.id !== event.target.dataset.subtask);
+        syncTaskDone(task);
+        saveAndRender();
+      }
+    });
+
+    document.body.addEventListener("submit", (event) => {
+      const action = event.target.dataset.action;
+      if (action !== "add-task" && action !== "add-subtask") return;
+      event.preventDefault();
+
+      if (action === "add-subtask") {
+        const task = findTask(event.target.dataset.ws, event.target.dataset.task);
+        const input = event.target.querySelector('input[name="subtask"]');
+        task.subtasks = task.subtasks || [];
+        task.subtasks.push({ id: crypto.randomUUID(), name: input.value.trim(), done: false });
+        syncTaskDone(task);
+        input.value = "";
+        saveAndRender();
+        return;
+      }
+
+      const ws = findWorkstream(event.target.dataset.ws);
+      ws.tasks.push({
+        id: crypto.randomUUID(),
+        name: event.target.querySelector('input[name="task"]').value.trim(),
+        owner: event.target.querySelector('input[name="owner"]').value.trim(),
+        milestoneId: event.target.querySelector('select[name="milestone"]').value,
+        targetDate: event.target.querySelector('input[name="targetDate"]').value,
+        actualDate: event.target.querySelector('input[name="actualDate"]').value,
+        subtasks: [],
+        done: false
+      });
+      event.target.reset();
+      saveAndRender();
+    });
+
+    document.getElementById("updateForm").addEventListener("submit", (event) => {
+      event.preventDefault();
+      const project = currentProject();
+      const ws = project.workstreams.find((item) => item.id === document.getElementById("updateWorkstream").value);
+      const status = document.getElementById("updateStatus").value;
+      ws.status = status;
+      project.updates.push({
+        id: crypto.randomUUID(),
+        date: new Date().toISOString().slice(0, 10),
+        submitterName: document.getElementById("submitterName").value.trim(),
+        workstreamId: ws.id,
+        workstreamName: ws.name,
+        status,
+        done: document.getElementById("doneText").value.trim(),
+        next: document.getElementById("nextText").value.trim(),
+        blocker: document.getElementById("blockerText").value.trim(),
+        support: document.getElementById("supportText").value.trim()
+      });
+      event.target.reset();
+      saveAndRender();
+    });
+
+    document.getElementById("exportBtn").addEventListener("click", () => {
+      const project = currentProject();
+      if (!project) return;
+      const blob = new Blob([JSON.stringify(project, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${project.name.toLowerCase().replaceAll(" ", "-")}.json`;
+      link.click();
+      URL.revokeObjectURL(url);
+    });
+
+    render();
+  </script>
+</body>
+</html>
