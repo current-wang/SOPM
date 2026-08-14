@@ -464,6 +464,22 @@
       line-height: 1.45;
     }
 
+    .task-description {
+      grid-column: 2 / 3;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+      overflow-wrap: anywhere;
+    }
+
+    textarea.task-description-input {
+      grid-column: 2 / 3;
+      min-height: 54px;
+      padding: 7px 8px;
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
     .milestone-badge {
       display: inline-flex;
       align-items: center;
@@ -479,6 +495,8 @@
     }
 
     .task-meta,
+    .task-description,
+    .task-description-input,
     .task-progress,
     .subtask-list,
     .subtask-form {
@@ -496,6 +514,10 @@
       padding: 5px 7px;
       color: #42526e;
       font-size: 12px;
+    }
+
+    .progress-input {
+      max-width: 92px;
     }
 
     .task-progress {
@@ -524,7 +546,7 @@
 
     .subtask {
       display: grid;
-      grid-template-columns: auto minmax(0, 1fr) auto;
+      grid-template-columns: auto minmax(0, 1fr) auto auto;
       align-items: center;
       gap: 7px;
       color: #42526e;
@@ -534,6 +556,13 @@
     .subtask input[type="checkbox"] {
       width: 14px;
       height: 14px;
+    }
+
+    .subtask input[type="number"] {
+      width: 68px;
+      min-height: 26px;
+      padding: 4px 6px;
+      font-size: 12px;
     }
 
     .subtask-form {
@@ -605,6 +634,24 @@
       min-height: 32px;
       padding: 6px 8px;
       font-size: 12px;
+    }
+
+    .member-list {
+      display: grid;
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .member-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      padding: 8px 10px;
+      border: 1px solid #edf0f5;
+      border-radius: 6px;
+      background: #fbfcfe;
+      font-size: 13px;
     }
 
     .updates-layout {
@@ -796,6 +843,8 @@
       }
 
       .task-meta,
+      .task-description,
+      .task-description-input,
       .task-progress,
       .subtask-list,
       .subtask-form {
@@ -868,6 +917,7 @@
           <div class="actions">
             <button id="backToProjectsBtn" hidden>Projects</button>
             <button class="primary" id="createProjectBtn">Create Program</button>
+            <button id="shareBtn" hidden>Share</button>
             <button id="exportBtn" hidden>Export JSON</button>
           </div>
         </div>
@@ -996,6 +1046,31 @@
     </form>
   </div>
 
+  <div class="drawer" id="shareDialog">
+    <form class="dialog compact-form" id="shareForm">
+      <div class="dialog-head">
+        <h3>Share Program</h3>
+        <button class="icon" type="button" data-close-dialog>×</button>
+      </div>
+      <div class="field">
+        <label for="shareEmail">Registered user email</label>
+        <input id="shareEmail" type="email" placeholder="name@company.com" required>
+      </div>
+      <div class="field">
+        <label for="shareRole">Role</label>
+        <select id="shareRole">
+          <option value="editor">Editor / Can edit</option>
+          <option value="viewer">Viewer / Read only</option>
+        </select>
+      </div>
+      <button class="primary" type="submit">Invite</button>
+      <div class="field">
+        <label>Current members</label>
+        <div class="member-list" id="memberList"></div>
+      </div>
+    </form>
+  </div>
+
   <input id="fileInput" type="file" accept="application/json" hidden>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1086,6 +1161,7 @@
     const authScreen = document.getElementById("authScreen");
     const appScreen = document.getElementById("appScreen");
     const projectDialog = document.getElementById("projectDialog");
+    const shareDialog = document.getElementById("shareDialog");
 
     function deepClone(value) {
       return JSON.parse(JSON.stringify(value));
@@ -1143,15 +1219,30 @@
       return total === 0 ? 0 : Math.round((done / total) * 100);
     }
 
+    function clampProgress(value) {
+      const progress = Number(value);
+      if (Number.isNaN(progress)) return 0;
+      return Math.max(0, Math.min(100, Math.round(progress)));
+    }
+
+    function itemProgress(item) {
+      if (typeof item.progress === "number") return clampProgress(item.progress);
+      return item.done ? 100 : 0;
+    }
+
     function taskProgress(task) {
       const subtasks = task.subtasks || [];
-      if (subtasks.length === 0) return task.done ? 100 : 0;
-      return percent(subtasks.filter((subtask) => subtask.done).length, subtasks.length);
+      if (subtasks.length === 0) return itemProgress(task);
+      return Math.round(subtasks.reduce((sum, subtask) => sum + itemProgress(subtask), 0) / subtasks.length);
     }
 
     function syncTaskDone(task) {
       const subtasks = task.subtasks || [];
-      if (subtasks.length > 0) task.done = subtasks.every((subtask) => subtask.done);
+      if (subtasks.length > 0) {
+        subtasks.forEach((subtask) => { subtask.done = itemProgress(subtask) >= 100; });
+        task.progress = taskProgress(task);
+      }
+      task.done = taskProgress(task) >= 100;
     }
 
     function workstreamProgress(ws) {
@@ -1214,24 +1305,39 @@
     function remotePayload(project) {
       const payload = deepClone(project);
       delete payload.ownerId;
+      delete payload.ownerRemoteId;
       delete payload.remoteId;
+      delete payload.role;
       delete payload.version;
       delete payload.syncStatus;
       delete payload.updatedAt;
       return payload;
     }
 
-    function applyRemoteRow(row) {
+    function projectRole(project) {
+      return project?.role || (project?.ownerRemoteId === session?.userId ? "owner" : "viewer");
+    }
+
+    function canEditProject(project) {
+      if (!project) return false;
+      if (!isRemoteMode()) return true;
+      if (!project.remoteId) return true;
+      return ["owner", "editor"].includes(projectRole(project));
+    }
+
+    function applyRemoteRow(row, role = "viewer") {
       const data = row.data || {};
       return {
         ...data,
         id: row.id,
         remoteId: row.id,
         ownerId: session.userId,
+        ownerRemoteId: row.owner_id || data.ownerRemoteId || null,
         name: row.name || data.name || "Untitled Program",
         summary: row.summary || data.summary || "",
         targetCompletion: row.target_completion || data.targetCompletion || "",
         version: row.version || 1,
+        role,
         updatedAt: row.updated_at,
         syncStatus: "synced"
       };
@@ -1243,7 +1349,7 @@
       updateSyncState("Syncing...");
       const { data, error } = await supabaseClient
         .from("program_projects")
-        .select("id,name,summary,target_completion,data,version,updated_at")
+        .select("id,owner_id,name,summary,target_completion,data,version,updated_at")
         .order("updated_at", { ascending: false });
       isSyncing = false;
       if (error) {
@@ -1251,7 +1357,17 @@
         alert(`远程项目读取失败：${error.message}`);
         return;
       }
-      const remoteProjects = (data || []).map(applyRemoteRow);
+      const projectIds = (data || []).map((project) => project.id);
+      let roleMap = {};
+      if (projectIds.length > 0) {
+        const { data: roles } = await supabaseClient
+          .from("program_project_members")
+          .select("project_id,role")
+          .in("project_id", projectIds)
+          .eq("user_id", session.userId);
+        roleMap = Object.fromEntries((roles || []).map((item) => [item.project_id, item.role]));
+      }
+      const remoteProjects = (data || []).map((row) => applyRemoteRow(row, roleMap[row.id] || (row.owner_id === session.userId ? "owner" : "viewer")));
       const localDrafts = store.projects.filter((project) => project.ownerId === "local" || ["pending", "conflict"].includes(project.syncStatus));
       store.projects = store.projects.filter((project) => project.ownerId !== session.userId);
       store.projects.push(...remoteProjects, ...localDrafts);
@@ -1279,7 +1395,7 @@
             target_completion: project.targetCompletion,
             data: remotePayload(project)
           })
-          .select("id,name,summary,target_completion,data,version,updated_at")
+          .select("id,owner_id,name,summary,target_completion,data,version,updated_at")
           .single();
         if (error) {
           project.syncStatus = "pending";
@@ -1288,7 +1404,7 @@
           return;
         }
         const activeWasLocal = activeProjectId === project.id;
-        Object.assign(project, applyRemoteRow(data));
+        Object.assign(project, applyRemoteRow(data, "owner"));
         if (activeWasLocal) activeProjectId = project.id;
         if (session) saveSession({ ...session, activeProjectId });
         saveStore();
@@ -1319,7 +1435,7 @@
         render();
         return;
       }
-      Object.assign(project, applyRemoteRow(data[0]));
+      Object.assign(project, applyRemoteRow(data[0], projectRole(project)));
       saveStore();
       updateSyncState("Synced");
     }
@@ -1345,12 +1461,67 @@
       render();
     }
 
+    async function loadProjectMembers(project) {
+      const list = document.getElementById("memberList");
+      if (!isRemoteMode() || !project?.remoteId) {
+        list.innerHTML = `<div class="empty">Remote members are available after sync.</div>`;
+        return;
+      }
+      list.innerHTML = `<div class="empty">Loading members...</div>`;
+      const { data, error } = await supabaseClient.rpc("list_program_project_members", {
+        p_project_id: project.remoteId
+      });
+      if (error) {
+        list.innerHTML = `<div class="empty">${escapeHtml(error.message)}</div>`;
+        return;
+      }
+      list.innerHTML = (data || []).length
+        ? data.map((member) => `
+          <div class="member-row">
+            <span>${escapeHtml(member.email || member.user_id)}</span>
+            <span class="tag">${escapeHtml(member.role)}</span>
+          </div>
+        `).join("")
+        : `<div class="empty">No members yet.</div>`;
+    }
+
+    async function inviteProjectMember(email, role) {
+      const project = currentProject();
+      if (!project || !canEditProject(project)) return;
+      if (!project.remoteId) {
+        alert("请先同步项目到远程后再分享。");
+        return;
+      }
+      const { data, error } = await supabaseClient.rpc("invite_program_project_member", {
+        p_project_id: project.remoteId,
+        p_email: email,
+        p_role: role
+      });
+      if (error) {
+        alert(`邀请失败：${error.message}`);
+        return;
+      }
+      if (!data || data.length === 0) {
+        alert("未找到该邮箱对应的已注册用户。请让对方先创建账号。");
+        return;
+      }
+      await loadProjectMembers(project);
+      alert("邀请已添加，对方登录后即可看到项目。");
+    }
+
     function normalizeProject(project) {
       if (!project) return;
       project.workstreams.forEach((ws) => {
         ws.tasks.forEach((task) => {
           task.subtasks = task.subtasks || [];
           task.milestoneId = task.milestoneId || "";
+          task.description = task.description || "";
+          if (typeof task.progress !== "number") task.progress = task.done ? 100 : 0;
+          task.subtasks.forEach((subtask) => {
+            if (typeof subtask.progress !== "number") subtask.progress = subtask.done ? 100 : 0;
+            subtask.done = itemProgress(subtask) >= 100;
+          });
+          syncTaskDone(task);
         });
       });
     }
@@ -1380,6 +1551,7 @@
       document.getElementById(`${activeView}View`).classList.add("active");
       document.getElementById("backToProjectsBtn").hidden = activeView === "projects";
       document.getElementById("exportBtn").hidden = !project || activeView === "projects";
+      document.getElementById("shareBtn").hidden = !project || activeView === "projects" || !isRemoteMode() || !canEditProject(project);
       document.getElementById("createProjectBtn").hidden = activeView !== "projects";
 
       if (activeView === "projects") {
@@ -1396,16 +1568,17 @@
       }
 
       normalizeProject(project);
+      const editable = canEditProject(project);
       setEditableText(document.getElementById("pageTitle"), project.name);
       setEditableText(document.getElementById("pageSubtitle"), project.summary);
-      document.getElementById("pageTitle").contentEditable = true;
-      document.getElementById("pageSubtitle").contentEditable = true;
+      document.getElementById("pageTitle").contentEditable = editable;
+      document.getElementById("pageSubtitle").contentEditable = editable;
       document.getElementById("pageTitle").dataset.action = "edit-project-field";
       document.getElementById("pageTitle").dataset.field = "name";
       document.getElementById("pageSubtitle").dataset.action = "edit-project-field";
       document.getElementById("pageSubtitle").dataset.field = "summary";
 
-      renderProgram(project);
+      renderProgram(project, editable);
     }
 
     function renderProjects() {
@@ -1433,13 +1606,14 @@
                 <span class="tag">${escapeHtml(project.targetCompletion || "-")}</span>
                 <span class="tag">${project.workstreams.length} Workstreams</span>
                 <span class="tag">${progress}% Progress</span>
+                <span class="tag">${escapeHtml(projectRole(project))}</span>
                 <span class="tag">${project.remoteId ? `v${escapeHtml(project.version || 1)}` : "Local"}</span>
                 ${project.syncStatus && project.syncStatus !== "synced" ? `<span class="tag">${escapeHtml(project.syncStatus)}</span>` : ""}
               </div>
               <div class="bar"><span style="--w:${progress}%;--c:var(--blue);"></span></div>
               <div class="actions" style="justify-content:flex-start;">
                 <button class="primary" data-action="open-project" data-project="${project.id}">Open</button>
-                <button class="danger" data-action="delete-project" data-project="${project.id}">Delete</button>
+                ${canEditProject(project) ? `<button class="danger" data-action="delete-project" data-project="${project.id}">Delete</button>` : ""}
               </div>
             </article>
           `;
@@ -1447,13 +1621,15 @@
         : `<div class="empty">No programs yet. Create your first Program.</div>`;
     }
 
-    function renderProgram(project) {
+    function renderProgram(project, editable) {
       renderMetrics(project);
       renderWorkstreams("overviewWorkstreams", project, false);
-      renderWorkstreams("workstreamGrid", project, true);
-      renderMilestones(project);
+      renderWorkstreams("workstreamGrid", project, editable);
+      renderMilestones(project, editable);
       renderUpdates(project);
       renderUpdateOptions(project);
+      document.getElementById("updateForm").hidden = !editable;
+      document.querySelector(".updates-layout").style.gridTemplateColumns = editable ? "" : "1fr";
     }
 
     function renderMetrics(project) {
@@ -1483,6 +1659,7 @@
             <div class="subtask ${subtask.done ? "done" : ""}">
               <input type="checkbox" ${subtask.done ? "checked" : ""} ${editable ? "" : "disabled"} data-action="toggle-subtask" data-ws="${ws.id}" data-task="${task.id}" data-subtask="${subtask.id}">
               <span>${escapeHtml(subtask.name)}</span>
+              ${editable ? `<input type="number" min="0" max="100" value="${itemProgress(subtask)}" aria-label="Subtask progress" data-action="update-subtask-progress" data-ws="${ws.id}" data-task="${task.id}" data-subtask="${subtask.id}">` : `<span class="tag">${itemProgress(subtask)}%</span>`}
               ${editable ? `<button class="icon" type="button" data-action="delete-subtask" data-ws="${ws.id}" data-task="${task.id}" data-subtask="${subtask.id}">×</button>` : ""}
             </div>
           `).join("");
@@ -1491,6 +1668,7 @@
               <input type="checkbox" ${task.done ? "checked" : ""} ${editable ? "" : "disabled"} data-action="toggle-task" data-ws="${ws.id}" data-task="${task.id}">
               <span class="task-name">${escapeHtml(task.name)}${milestoneLabel ? `<span class="milestone-badge">${escapeHtml(milestoneLabel)}</span>` : ""}</span>
               ${editable ? `<button class="icon" type="button" data-action="delete-task" data-ws="${ws.id}" data-task="${task.id}">×</button>` : ""}
+              ${editable ? `<textarea class="task-description-input" placeholder="任务描述 / scope / acceptance criteria" data-action="update-task-description" data-ws="${ws.id}" data-task="${task.id}">${escapeHtml(task.description || "")}</textarea>` : `${task.description ? `<div class="task-description">${escapeHtml(task.description)}</div>` : ""}`}
               ${editable ? `
                 <div class="task-meta">
                   <input value="${escapeHtml(task.owner || "")}" placeholder="Owner" data-action="update-task-owner" data-ws="${ws.id}" data-task="${task.id}">
@@ -1498,12 +1676,14 @@
                     <option value="">No Milestone</option>
                     ${milestoneOptions}
                   </select>
+                  <input class="progress-input" type="number" min="0" max="100" value="${taskPct}" ${subtasks.length ? "disabled" : ""} title="${subtasks.length ? "由子任务汇算" : "Progress"}" data-action="update-task-progress" data-ws="${ws.id}" data-task="${task.id}">
                   <input type="date" value="${escapeHtml(task.targetDate || "")}" data-action="update-task-date" data-field="targetDate" data-ws="${ws.id}" data-task="${task.id}">
                   <input type="date" value="${escapeHtml(task.actualDate || "")}" data-action="update-task-date" data-field="actualDate" data-ws="${ws.id}" data-task="${task.id}">
                 </div>
               ` : `
                 <div class="task-meta">
                   <span class="tag">Owner: ${escapeHtml(task.owner || "-")}</span>
+                  <span class="tag">Progress: ${taskPct}%</span>
                   <span class="tag">Target: ${escapeHtml(task.targetDate || "-")}</span>
                   <span class="tag">Actual: ${escapeHtml(task.actualDate || "-")}</span>
                 </div>
@@ -1538,6 +1718,7 @@
             <div class="task-list">${tasks || `<div class="empty">No tasks</div>`}</div>
             ${editable ? `<form class="inline-form" data-action="add-task" data-ws="${ws.id}">
               <input name="task" placeholder="新增 deliverable / task" required>
+              <input name="description" placeholder="Description">
               <input name="owner" placeholder="Owner">
               <select name="milestone">
                 <option value="">Milestone</option>
@@ -1552,24 +1733,24 @@
       }).join("");
     }
 
-    function renderMilestones(project) {
+    function renderMilestones(project, editable) {
       document.getElementById("milestoneGrid").innerHTML = project.milestones.map((m) => `
         <article class="panel milestone">
-          <select class="status-select" data-action="set-milestone-status" data-milestone="${m.id}">
+          ${editable ? `<select class="status-select" data-action="set-milestone-status" data-milestone="${m.id}">
             <option value="green" ${m.status === "green" ? "selected" : ""}>🟢 Green / Done</option>
             <option value="yellow" ${m.status === "yellow" ? "selected" : ""}>🟡 Yellow / At Risk</option>
             <option value="red" ${m.status === "red" ? "selected" : ""}>🔴 Red / Blocked</option>
-          </select>
-          <h4 contenteditable="true" data-action="edit-milestone-field" data-milestone="${m.id}" data-field="name">${escapeHtml(m.name)}</h4>
-          <p contenteditable="true" data-action="edit-milestone-field" data-milestone="${m.id}" data-field="detail">${escapeHtml(m.detail)}</p>
+          </select>` : `<span class="tag">${statusLabel(m.status)} ${escapeHtml(m.status)}</span>`}
+          <h4 contenteditable="${editable}" data-action="edit-milestone-field" data-milestone="${m.id}" data-field="name">${escapeHtml(m.name)}</h4>
+          <p contenteditable="${editable}" data-action="edit-milestone-field" data-milestone="${m.id}" data-field="detail">${escapeHtml(m.detail)}</p>
           <div class="date-row">
             <div class="date-field">
               <label>目标完成时间</label>
-              <input type="date" value="${escapeHtml(m.targetDate || "")}" data-action="update-milestone-date" data-field="targetDate" data-milestone="${m.id}">
+              <input type="date" value="${escapeHtml(m.targetDate || "")}" ${editable ? "" : "disabled"} data-action="update-milestone-date" data-field="targetDate" data-milestone="${m.id}">
             </div>
             <div class="date-field">
               <label>实际完成时间</label>
-              <input type="date" value="${escapeHtml(m.actualDate || "")}" data-action="update-milestone-date" data-field="actualDate" data-milestone="${m.id}">
+              <input type="date" value="${escapeHtml(m.actualDate || "")}" ${editable ? "" : "disabled"} data-action="update-milestone-date" data-field="actualDate" data-milestone="${m.id}">
             </div>
           </div>
         </article>
@@ -1671,6 +1852,7 @@
           support: "Product / Sales"
         }
       ];
+      normalizeProject(demo);
       store.projects.push(demo);
       return demo.id;
     }
@@ -1808,7 +1990,15 @@
     });
 
     document.querySelectorAll("[data-close-dialog]").forEach((button) => {
-      button.addEventListener("click", () => projectDialog.classList.remove("open"));
+      button.addEventListener("click", () => button.closest(".drawer")?.classList.remove("open"));
+    });
+
+    document.getElementById("shareBtn").addEventListener("click", async () => {
+      const project = currentProject();
+      if (!project || !canEditProject(project)) return;
+      shareDialog.classList.add("open");
+      document.getElementById("shareEmail").focus();
+      await loadProjectMembers(project);
     });
 
     document.getElementById("projectForm").addEventListener("submit", (event) => {
@@ -1822,11 +2012,20 @@
       projectDialog.classList.remove("open");
     });
 
+    document.getElementById("shareForm").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      await inviteProjectMember(
+        document.getElementById("shareEmail").value.trim().toLowerCase(),
+        document.getElementById("shareRole").value
+      );
+      document.getElementById("shareEmail").value = "";
+    });
+
     document.body.addEventListener("focusout", (event) => {
       const action = event.target.dataset.action;
       if (!action || event.target.contentEditable !== "true") return;
       const project = currentProject();
-      if (!project) return;
+      if (!project || !canEditProject(project)) return;
       const value = editableValue(event.target);
 
       if (action === "edit-project-field") project[event.target.dataset.field] = value;
@@ -1856,15 +2055,21 @@
       if (!action) return;
       const project = currentProject();
       if (!project) return;
+      if (!canEditProject(project)) return;
 
       if (action === "toggle-task") {
         const task = findTask(event.target.dataset.ws, event.target.dataset.task);
+        task.progress = event.target.checked ? 100 : 0;
         task.done = event.target.checked;
-        (task.subtasks || []).forEach((subtask) => { subtask.done = task.done; });
+        (task.subtasks || []).forEach((subtask) => {
+          subtask.progress = task.progress;
+          subtask.done = task.done;
+        });
       }
       if (action === "toggle-subtask") {
         const task = findTask(event.target.dataset.ws, event.target.dataset.task);
         const subtask = (task.subtasks || []).find((item) => item.id === event.target.dataset.subtask);
+        subtask.progress = event.target.checked ? 100 : 0;
         subtask.done = event.target.checked;
         syncTaskDone(task);
       }
@@ -1877,8 +2082,23 @@
       if (action === "update-task-owner") {
         findTask(event.target.dataset.ws, event.target.dataset.task).owner = event.target.value.trim();
       }
+      if (action === "update-task-description") {
+        findTask(event.target.dataset.ws, event.target.dataset.task).description = event.target.value.trim();
+      }
       if (action === "update-task-milestone") {
         findTask(event.target.dataset.ws, event.target.dataset.task).milestoneId = event.target.value;
+      }
+      if (action === "update-task-progress") {
+        const task = findTask(event.target.dataset.ws, event.target.dataset.task);
+        task.progress = clampProgress(event.target.value);
+        task.done = task.progress >= 100;
+      }
+      if (action === "update-subtask-progress") {
+        const task = findTask(event.target.dataset.ws, event.target.dataset.task);
+        const subtask = (task.subtasks || []).find((item) => item.id === event.target.dataset.subtask);
+        subtask.progress = clampProgress(event.target.value);
+        subtask.done = subtask.progress >= 100;
+        syncTaskDone(task);
       }
       if (action === "update-task-date") {
         findTask(event.target.dataset.ws, event.target.dataset.task)[event.target.dataset.field] = event.target.value;
@@ -1900,6 +2120,7 @@
 
       if (action === "delete-project") {
         const project = store.projects.find((item) => item.id === event.target.dataset.project);
+        if (!canEditProject(project)) return;
         if (!confirm(`Delete "${project.name}"?`)) return;
         store.projects = store.projects.filter((item) => item.id !== project.id);
         if (isRemoteMode() && project.remoteId) {
@@ -1912,6 +2133,7 @@
       }
 
       const ws = findWorkstream(event.target.dataset.ws);
+      if (!canEditProject(currentProject())) return;
       if (action === "delete-task") {
         ws.tasks = ws.tasks.filter((task) => task.id !== event.target.dataset.task);
         saveAndRender();
@@ -1928,12 +2150,13 @@
       const action = event.target.dataset.action;
       if (action !== "add-task" && action !== "add-subtask") return;
       event.preventDefault();
+      if (!canEditProject(currentProject())) return;
 
       if (action === "add-subtask") {
         const task = findTask(event.target.dataset.ws, event.target.dataset.task);
         const input = event.target.querySelector('input[name="subtask"]');
         task.subtasks = task.subtasks || [];
-        task.subtasks.push({ id: crypto.randomUUID(), name: input.value.trim(), done: false });
+        task.subtasks.push({ id: crypto.randomUUID(), name: input.value.trim(), progress: 0, done: false });
         syncTaskDone(task);
         input.value = "";
         saveAndRender();
@@ -1944,11 +2167,13 @@
       ws.tasks.push({
         id: crypto.randomUUID(),
         name: event.target.querySelector('input[name="task"]').value.trim(),
+        description: event.target.querySelector('input[name="description"]').value.trim(),
         owner: event.target.querySelector('input[name="owner"]').value.trim(),
         milestoneId: event.target.querySelector('select[name="milestone"]').value,
         targetDate: event.target.querySelector('input[name="targetDate"]').value,
         actualDate: event.target.querySelector('input[name="actualDate"]').value,
         subtasks: [],
+        progress: 0,
         done: false
       });
       event.target.reset();
@@ -1958,6 +2183,7 @@
     document.getElementById("updateForm").addEventListener("submit", (event) => {
       event.preventDefault();
       const project = currentProject();
+      if (!canEditProject(project)) return;
       const ws = project.workstreams.find((item) => item.id === document.getElementById("updateWorkstream").value);
       const status = document.getElementById("updateStatus").value;
       ws.status = status;
