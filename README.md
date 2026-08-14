@@ -13,21 +13,27 @@ This is a standalone SaaS-style prototype. It does not modify the existing demo 
 - Tasks can be linked to milestones and display milestone labels
 - Task progress automatically rolls up from subtasks
 - Workstream and Program progress automatically roll up from task progress
-- Local browser storage for prototype data
+- Supabase email/password account login
+- Offline local drafts when not signed in
+- Version-checked remote sync after sign in
 
 ## Run
 
 Open `index.html` directly in a browser.
 
-## Current Scope
+## Supabase Setup
 
-This prototype stores accounts and projects in browser `localStorage`. It is intended for product validation and workflow design.
+1. Open Supabase SQL Editor.
+2. Run `supabase-setup.sql`.
+3. In Supabase Auth, use email/password sign-in. For fastest internal testing, disable email confirmation.
+4. Open `index.html` from GitHub Pages or directly in a browser.
 
-For production SaaS, the next step is to replace local storage with:
+## Data Model
 
-- Supabase Auth
-- `organizations`
-- `organization_members`
-- `projects`
-- `project_state`
-- Row-level security for project-level access
+The fast SaaS version stores each Program as one JSON document in `program_projects.data`.
+
+- `program_projects`: project shell, JSON state, version, owner
+- `program_project_members`: future sharing and role control
+- `save_program_project`: compare-and-save function using `version`
+
+The browser still keeps a local copy in `localStorage`. If the user works offline or before signing in, projects are saved locally and uploaded after sign-in.

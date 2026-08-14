@@ -59,6 +59,12 @@
       color: white;
     }
 
+    button.secondary {
+      border-color: #c7d7fe;
+      background: #eef4ff;
+      color: #1d4ed8;
+    }
+
     button.danger {
       border-color: #fecaca;
       background: #fff7f7;
@@ -250,6 +256,19 @@
       gap: 10px;
       color: var(--muted);
       font-size: 13px;
+    }
+
+    .sync-state {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 0 9px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: white;
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
     }
 
     .main {
@@ -805,6 +824,7 @@
           <input id="authEmail" type="email" placeholder="Email" required>
           <input id="authPassword" type="password" placeholder="Password" required>
           <button class="primary" type="submit" id="authSubmit">Sign in</button>
+          <button class="secondary" type="button" id="offlineBtn">Continue offline</button>
         </form>
       </div>
       <div class="auth-copy">
@@ -832,7 +852,9 @@
           <button data-view="updates">✎ Updates</button>
         </nav>
         <div class="account-box">
+          <div id="syncState" class="sync-state">Local</div>
           <div id="accountEmail"></div>
+          <button id="syncBtn">Sync now</button>
           <button id="logoutBtn">Sign out</button>
         </div>
       </aside>
@@ -976,9 +998,13 @@
 
   <input id="fileInput" type="file" accept="application/json" hidden>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     const storageKey = "programos-saas-v1";
     const sessionKey = "programos-session-v1";
+    const supabaseUrl = "https://rfmdqvgzuyginfpvmyib.supabase.co";
+    const supabasePublishableKey = "sb_publishable_Y3PVGZNaCrBCOYGdvU81cA_LN2tENNK";
+    const supabaseClient = window.supabase?.createClient(supabaseUrl, supabasePublishableKey);
 
     const defaultProgramTemplate = {
       name: "AI Product Launch Program",
@@ -1044,6 +1070,8 @@
 
     let store = loadStore();
     let session = loadSession();
+    let remoteUser = null;
+    let isSyncing = false;
     let authMode = "login";
     let activeProjectId = session?.activeProjectId || "";
     let activeView = "projects";
@@ -1083,6 +1111,16 @@
     }
 
     function currentUser() {
+      if (session?.mode === "remote" && remoteUser) {
+        return {
+          id: remoteUser.id,
+          name: remoteUser.user_metadata?.name || remoteUser.email?.split("@")[0] || "User",
+          email: remoteUser.email
+        };
+      }
+      if (session?.mode === "local") {
+        return { id: "local", name: "Offline", email: "Offline workspace" };
+      }
       return store.users.find((user) => user.id === session?.userId);
     }
 
@@ -1152,6 +1190,151 @@
 
     function saveAndRender() {
       saveStore();
+      const project = currentProject();
+      if (project) syncProject(project);
+      render();
+    }
+
+    function isRemoteMode() {
+      return session?.mode === "remote" && remoteUser && supabaseClient;
+    }
+
+    function updateSyncState(text) {
+      const element = document.getElementById("syncState");
+      if (element) element.textContent = text;
+    }
+
+    function remotePayload(project) {
+      const payload = deepClone(project);
+      delete payload.ownerId;
+      delete payload.remoteId;
+      delete payload.version;
+      delete payload.syncStatus;
+      delete payload.updatedAt;
+      return payload;
+    }
+
+    function applyRemoteRow(row) {
+      const data = row.data || {};
+      return {
+        ...data,
+        id: row.id,
+        remoteId: row.id,
+        ownerId: session.userId,
+        name: row.name || data.name || "Untitled Program",
+        summary: row.summary || data.summary || "",
+        targetCompletion: row.target_completion || data.targetCompletion || "",
+        version: row.version || 1,
+        updatedAt: row.updated_at,
+        syncStatus: "synced"
+      };
+    }
+
+    async function loadRemoteProjects() {
+      if (!isRemoteMode()) return;
+      isSyncing = true;
+      updateSyncState("Syncing...");
+      const { data, error } = await supabaseClient
+        .from("program_projects")
+        .select("id,name,summary,target_completion,data,version,updated_at")
+        .order("updated_at", { ascending: false });
+      isSyncing = false;
+      if (error) {
+        updateSyncState("Remote load failed");
+        alert(`远程项目读取失败：${error.message}`);
+        return;
+      }
+      const remoteProjects = (data || []).map(applyRemoteRow);
+      const localDrafts = store.projects.filter((project) => project.ownerId === "local" || ["pending", "conflict"].includes(project.syncStatus));
+      store.projects = store.projects.filter((project) => project.ownerId !== session.userId);
+      store.projects.push(...remoteProjects, ...localDrafts);
+      saveStore();
+      updateSyncState("Synced");
+    }
+
+    async function syncProject(project) {
+      if (!isRemoteMode() || isSyncing || !project) return;
+      if (project.syncStatus === "conflict") {
+        updateSyncState("Conflict");
+        return;
+      }
+      project.syncStatus = "pending";
+      saveStore();
+      updateSyncState("Saving...");
+
+      if (!project.remoteId) {
+        const { data, error } = await supabaseClient
+          .from("program_projects")
+          .insert({
+            owner_id: session.userId,
+            name: project.name,
+            summary: project.summary,
+            target_completion: project.targetCompletion,
+            data: remotePayload(project)
+          })
+          .select("id,name,summary,target_completion,data,version,updated_at")
+          .single();
+        if (error) {
+          project.syncStatus = "pending";
+          updateSyncState("Local pending");
+          saveStore();
+          return;
+        }
+        const activeWasLocal = activeProjectId === project.id;
+        Object.assign(project, applyRemoteRow(data));
+        if (activeWasLocal) activeProjectId = project.id;
+        if (session) saveSession({ ...session, activeProjectId });
+        saveStore();
+        updateSyncState("Synced");
+        return;
+      }
+
+      const { data, error } = await supabaseClient.rpc("save_program_project", {
+        p_project_id: project.remoteId,
+        p_expected_version: project.version || 1,
+        p_name: project.name,
+        p_summary: project.summary,
+        p_target_completion: project.targetCompletion,
+        p_data: remotePayload(project)
+      });
+
+      if (error) {
+        project.syncStatus = "pending";
+        updateSyncState("Local pending");
+        saveStore();
+        return;
+      }
+      if (!data || data.length === 0) {
+        project.syncStatus = "conflict";
+        updateSyncState("Conflict");
+        alert("远程版本已更新，本地修改已保留但未覆盖远程。请点击 Sync now 拉取最新版本后再合并。");
+        saveStore();
+        render();
+        return;
+      }
+      Object.assign(project, applyRemoteRow(data[0]));
+      saveStore();
+      updateSyncState("Synced");
+    }
+
+    async function syncAllPendingProjects() {
+      if (!isRemoteMode()) {
+        alert("请先登录后再同步远程。");
+        return;
+      }
+      const localProjects = store.projects.filter((project) => project.ownerId === "local");
+      localProjects.forEach((project) => {
+        project.ownerId = session.userId;
+        project.syncStatus = "pending";
+      });
+      const pending = store.projects.filter((project) => project.ownerId === session.userId && project.syncStatus !== "synced");
+      for (const project of pending) {
+        await syncProject(project);
+      }
+      await loadRemoteProjects();
+      if (activeProjectId && !currentProject()) activeProjectId = currentProjects()[0]?.id || "";
+      saveSession({ ...session, activeProjectId });
+      saveStore();
       render();
     }
 
@@ -1176,6 +1359,9 @@
       appScreen.classList.add("active");
       document.getElementById("accountEmail").textContent = currentUser().email;
       document.getElementById("workspaceName").textContent = `${currentUser().name}'s workspace`;
+      document.getElementById("syncBtn").hidden = !isRemoteMode();
+      if (!isRemoteMode()) updateSyncState("Local only");
+      else updateSyncState(isSyncing ? "Syncing..." : "Synced");
 
       const project = currentProject();
       document.querySelectorAll("[data-view]").forEach((button) => {
@@ -1240,6 +1426,8 @@
                 <span class="tag">${escapeHtml(project.targetCompletion || "-")}</span>
                 <span class="tag">${project.workstreams.length} Workstreams</span>
                 <span class="tag">${progress}% Progress</span>
+                <span class="tag">${project.remoteId ? `v${escapeHtml(project.version || 1)}` : "Local"}</span>
+                ${project.syncStatus && project.syncStatus !== "synced" ? `<span class="tag">${escapeHtml(project.syncStatus)}</span>` : ""}
               </div>
               <div class="bar"><span style="--w:${progress}%;--c:var(--blue);"></span></div>
               <div class="actions" style="justify-content:flex-start;">
@@ -1446,6 +1634,7 @@
       store.projects.push(template);
       saveStore();
       openProject(template.id);
+      syncProject(template);
     }
 
     function createDemoProjectForUser(userId) {
@@ -1495,47 +1684,79 @@
       document.getElementById("authSubmit").textContent = "Create account";
     });
 
-    document.getElementById("authForm").addEventListener("submit", (event) => {
+    async function enterRemoteSession(user) {
+      remoteUser = user;
+      saveSession({ mode: "remote", userId: user.id, activeProjectId: activeProjectId || "" });
+      await loadRemoteProjects();
+      const localDrafts = store.projects.filter((project) => project.ownerId === "local");
+      for (const project of localDrafts) {
+        const wasActive = activeProjectId === project.id;
+        project.ownerId = user.id;
+        project.syncStatus = "pending";
+        await syncProject(project);
+        if (wasActive) activeProjectId = project.id;
+      }
+      if (currentProjects().length === 0) {
+        const demoProjectId = createDemoProjectForUser(user.id);
+        activeProjectId = demoProjectId;
+        await syncProject(currentProject());
+        saveSession({ ...session, activeProjectId });
+      }
+      activeView = activeProjectId ? "overview" : "projects";
+      render();
+    }
+
+    document.getElementById("authForm").addEventListener("submit", async (event) => {
       event.preventDefault();
       const email = document.getElementById("authEmail").value.trim().toLowerCase();
       const password = document.getElementById("authPassword").value;
+      if (!supabaseClient) {
+        alert("Supabase SDK 未加载成功，可以先使用离线模式。");
+        return;
+      }
       if (authMode === "signup") {
-        if (store.users.some((user) => user.email === email)) {
-          alert("Account already exists.");
+        const name = document.getElementById("authName").value.trim() || email.split("@")[0];
+        const { data, error } = await supabaseClient.auth.signUp({
+          email,
+          password,
+          options: { data: { name } }
+        });
+        if (error) {
+          alert(`创建账号失败：${error.message}`);
           return;
         }
-        const user = {
-          id: crypto.randomUUID(),
-          name: document.getElementById("authName").value.trim() || email.split("@")[0],
-          email,
-          password
-        };
-        store.users.push(user);
-        const demoProjectId = createDemoProjectForUser(user.id);
-        saveStore();
-        saveSession({ userId: user.id, activeProjectId: demoProjectId });
-        activeProjectId = demoProjectId;
-        activeView = "overview";
-        render();
+        if (!data.session) {
+          alert("账号已创建。如果 Supabase 开启了邮件确认，请先完成确认；如需直接登录，请在 Supabase Auth 里关闭 Confirm email。");
+          return;
+        }
+        await enterRemoteSession(data.user);
         return;
       }
 
-      const user = store.users.find((item) => item.email === email && item.password === password);
-      if (!user) {
-        alert("Invalid email or password.");
+      const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+      if (error) {
+        alert(`登录失败：${error.message}`);
         return;
       }
-      saveSession({ userId: user.id, activeProjectId: activeProjectId || "" });
+      await enterRemoteSession(data.user);
+    });
+
+    document.getElementById("offlineBtn").addEventListener("click", () => {
+      saveSession({ mode: "local", userId: "local", activeProjectId: activeProjectId || "" });
       activeView = "projects";
       render();
     });
 
-    document.getElementById("logoutBtn").addEventListener("click", () => {
+    document.getElementById("logoutBtn").addEventListener("click", async () => {
+      if (isRemoteMode()) await supabaseClient.auth.signOut();
+      remoteUser = null;
       saveSession(null);
       activeProjectId = "";
       activeView = "projects";
       render();
     });
+
+    document.getElementById("syncBtn").addEventListener("click", syncAllPendingProjects);
 
     document.querySelectorAll("[data-view]").forEach((button) => {
       button.addEventListener("click", () => {
@@ -1650,6 +1871,9 @@
         const project = store.projects.find((item) => item.id === event.target.dataset.project);
         if (!confirm(`Delete "${project.name}"?`)) return;
         store.projects = store.projects.filter((item) => item.id !== project.id);
+        if (isRemoteMode() && project.remoteId) {
+          supabaseClient.from("program_projects").delete().eq("id", project.remoteId);
+        }
         if (activeProjectId === project.id) activeProjectId = "";
         saveStore();
         render();
@@ -1734,7 +1958,19 @@
       URL.revokeObjectURL(url);
     });
 
-    render();
+    async function init() {
+      if (supabaseClient) {
+        const { data } = await supabaseClient.auth.getSession();
+        if (data.session?.user) {
+          activeProjectId = session?.activeProjectId || "";
+          await enterRemoteSession(data.session.user);
+          return;
+        }
+      }
+      render();
+    }
+
+    init();
   </script>
 </body>
 </html>
