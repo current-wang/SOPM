@@ -1004,7 +1004,14 @@
     const sessionKey = "programos-session-v1";
     const supabaseUrl = "https://rfmdqvgzuyginfpvmyib.supabase.co";
     const supabasePublishableKey = "sb_publishable_Y3PVGZNaCrBCOYGdvU81cA_LN2tENNK";
-    const supabaseClient = window.supabase?.createClient(supabaseUrl, supabasePublishableKey);
+    const supabaseClient = window.supabase?.createClient(supabaseUrl, supabasePublishableKey, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+        storageKey: "programos-supabase-auth"
+      }
+    });
 
     const defaultProgramTemplate = {
       name: "AI Product Launch Program",
@@ -1706,6 +1713,23 @@
       render();
     }
 
+    async function restoreRemoteSession() {
+      if (!supabaseClient) return false;
+      const { data, error } = await supabaseClient.auth.getSession();
+      if (error || !data.session?.user) return false;
+      activeProjectId = session?.activeProjectId || activeProjectId || "";
+      await enterRemoteSession(data.session.user);
+      return true;
+    }
+
+    function setAuthBusy(isBusy) {
+      const button = document.getElementById("authSubmit");
+      button.disabled = isBusy;
+      button.textContent = isBusy
+        ? (authMode === "signup" ? "Creating..." : "Signing in...")
+        : (authMode === "signup" ? "Create account" : "Sign in");
+    }
+
     document.getElementById("authForm").addEventListener("submit", async (event) => {
       event.preventDefault();
       const email = document.getElementById("authEmail").value.trim().toLowerCase();
@@ -1714,31 +1738,38 @@
         alert("Supabase SDK 未加载成功，可以先使用离线模式。");
         return;
       }
-      if (authMode === "signup") {
-        const name = document.getElementById("authName").value.trim() || email.split("@")[0];
-        const { data, error } = await supabaseClient.auth.signUp({
-          email,
-          password,
-          options: { data: { name } }
-        });
-        if (error) {
-          alert(`创建账号失败：${error.message}`);
+      setAuthBusy(true);
+      try {
+        if (authMode === "signup") {
+          const name = document.getElementById("authName").value.trim() || email.split("@")[0];
+          const { data, error } = await supabaseClient.auth.signUp({
+            email,
+            password,
+            options: { data: { name } }
+          });
+          if (error) {
+            alert(`创建账号失败：${error.message}`);
+            return;
+          }
+          if (!data.session) {
+            alert("账号已创建。如果 Supabase 开启了邮件确认，请先完成确认；如需直接登录，请在 Supabase Auth 里关闭 Confirm email。");
+            return;
+          }
+          await enterRemoteSession(data.user);
           return;
         }
-        if (!data.session) {
-          alert("账号已创建。如果 Supabase 开启了邮件确认，请先完成确认；如需直接登录，请在 Supabase Auth 里关闭 Confirm email。");
+
+        const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+        if (error) {
+          alert(`登录失败：${error.message}`);
           return;
         }
         await enterRemoteSession(data.user);
-        return;
+      } catch (error) {
+        alert(`登录状态同步失败：${error.message}`);
+      } finally {
+        setAuthBusy(false);
       }
-
-      const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-      if (error) {
-        alert(`登录失败：${error.message}`);
-        return;
-      }
-      await enterRemoteSession(data.user);
     });
 
     document.getElementById("offlineBtn").addEventListener("click", () => {
@@ -1960,12 +1991,24 @@
 
     async function init() {
       if (supabaseClient) {
-        const { data } = await supabaseClient.auth.getSession();
-        if (data.session?.user) {
-          activeProjectId = session?.activeProjectId || "";
-          await enterRemoteSession(data.session.user);
-          return;
-        }
+        supabaseClient.auth.onAuthStateChange((event, authSession) => {
+          if (event === "SIGNED_OUT") {
+            remoteUser = null;
+            if (session?.mode === "remote") {
+              saveSession(null);
+              activeProjectId = "";
+              activeView = "projects";
+              render();
+            }
+            return;
+          }
+          if (authSession?.user && authSession.user.id !== remoteUser?.id) {
+            setTimeout(() => enterRemoteSession(authSession.user), 0);
+          }
+        });
+
+        const restored = await restoreRemoteSession();
+        if (restored) return;
       }
       render();
     }
