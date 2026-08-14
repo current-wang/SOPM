@@ -1401,17 +1401,12 @@
           saveStore();
           return;
         }
-        const { data, error } = await supabaseClient
-          .from("program_projects")
-          .insert({
-            owner_id: remoteUserId,
-            name: project.name,
-            summary: project.summary,
-            target_completion: project.targetCompletion,
-            data: remotePayload(project)
-          })
-          .select("id,owner_id,name,summary,target_completion,data,version,updated_at")
-          .single();
+        const { data, error } = await supabaseClient.rpc("create_program_project", {
+          p_name: project.name,
+          p_summary: project.summary,
+          p_target_completion: project.targetCompletion,
+          p_data: remotePayload(project)
+        });
         if (error) {
           project.syncStatus = "pending";
           updateSyncState("Local pending");
@@ -1419,8 +1414,15 @@
           saveStore();
           return;
         }
+        if (!data || data.length === 0) {
+          project.syncStatus = "pending";
+          updateSyncState("Login required");
+          alert("远程保存失败：未获取到登录用户，请重新登录后再同步。");
+          saveStore();
+          return;
+        }
         const activeWasLocal = activeProjectId === project.id;
-        Object.assign(project, applyRemoteRow(data, "owner"));
+        Object.assign(project, applyRemoteRow(data[0], "owner"));
         if (activeWasLocal) activeProjectId = project.id;
         if (session) saveSession({ ...session, activeProjectId });
         saveStore();
