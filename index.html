@@ -258,6 +258,34 @@
       font-size: 13px;
     }
 
+    .health-box {
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+      display: grid;
+      gap: 10px;
+    }
+
+    .health-box h3 {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .health-item {
+      display: grid;
+      gap: 5px;
+    }
+
+    .health-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 13px;
+    }
+
     .sync-state {
       display: inline-flex;
       align-items: center;
@@ -441,10 +469,10 @@
 
     .task {
       display: grid;
-      grid-template-columns: auto minmax(0, 1fr) minmax(112px, auto);
+      grid-template-columns: auto minmax(0, 1fr);
       align-items: start;
-      gap: 8px;
-      padding: 8px;
+      gap: 8px 10px;
+      padding: 10px;
       border: 1px solid #edf0f5;
       border-radius: 6px;
       background: #fbfcfe;
@@ -461,17 +489,34 @@
       min-width: 0;
       overflow-wrap: anywhere;
       font-size: 13px;
+      font-weight: 750;
       line-height: 1.45;
     }
 
-    .task-side {
+    .task-main {
+      min-width: 0;
       display: grid;
+      gap: 8px;
+      grid-column: 2 / -1;
+    }
+
+    .task-head {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: start;
+    }
+
+    .task-side {
+      display: flex;
+      align-items: center;
       gap: 6px;
-      justify-items: end;
+      justify-content: flex-end;
+      flex-wrap: wrap;
     }
 
     .task-side input {
-      width: 116px;
+      width: 128px;
       min-height: 28px;
       padding: 5px 7px;
       color: #42526e;
@@ -488,7 +533,6 @@
     }
 
     .task-description {
-      grid-column: 2 / 3;
       color: var(--muted);
       font-size: 12px;
       line-height: 1.45;
@@ -496,7 +540,6 @@
     }
 
     textarea.task-description-input {
-      grid-column: 2 / 3;
       min-height: 54px;
       padding: 7px 8px;
       font-size: 12px;
@@ -523,7 +566,7 @@
     .task-progress,
     .subtask-list,
     .subtask-form {
-      grid-column: 2 / 3;
+      grid-column: auto;
     }
 
     .task-meta {
@@ -541,7 +584,7 @@
 
     .task-progress {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-columns: minmax(0, 1fr);
       align-items: center;
       gap: 8px;
       color: var(--muted);
@@ -688,6 +731,120 @@
       font-size: 13px;
     }
 
+    .drawer-summary {
+      display: grid;
+      gap: 10px;
+      align-content: center;
+      min-height: 130px;
+      padding: 12px;
+      border: 1px solid #dbeafe;
+      border-radius: 8px;
+      background: #f8fbff;
+    }
+
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .summary-row strong {
+      font-size: 24px;
+      line-height: 1;
+    }
+
+    .drawer-section {
+      display: grid;
+      gap: 10px;
+      padding-top: 12px;
+      border-top: 1px solid var(--line);
+    }
+
+    .update-section {
+      align-content: start;
+    }
+
+    .history-section {
+      min-height: 0;
+      grid-template-rows: auto minmax(0, 1fr);
+      overflow: hidden;
+    }
+
+    .section-title {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 750;
+      text-transform: uppercase;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 120px;
+      gap: 10px;
+    }
+
+    .progress-number {
+      font-size: 28px;
+      font-weight: 800;
+      text-align: center;
+    }
+
+    .file-box {
+      min-height: 42px;
+      padding: 9px;
+      border: 1px dashed #c7d7fe;
+      border-radius: 8px;
+      background: #fbfdff;
+      font-size: 12px;
+    }
+
+    .timeline {
+      display: grid;
+      align-content: start;
+      gap: 10px;
+    }
+
+    .history-section .timeline {
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .timeline-item {
+      position: relative;
+      display: grid;
+      gap: 7px;
+      padding: 11px 12px 11px 16px;
+      border: 1px solid #edf0f5;
+      border-radius: 8px;
+      background: #fbfcfe;
+      font-size: 13px;
+    }
+
+    .timeline-item::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 12px;
+      bottom: 12px;
+      width: 3px;
+      border-radius: 999px;
+      background: var(--blue);
+    }
+
+    .timeline-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .timeline-meta {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
     .attachment-list {
       display: grid;
       gap: 6px;
@@ -806,10 +963,25 @@
     }
 
     .side .dialog {
-      width: min(520px, 100%);
+      width: min(560px, 100%);
       min-height: 100vh;
       max-height: 100vh;
       border-radius: 0;
+      gap: 16px;
+      overflow: hidden;
+      padding: 22px 24px;
+    }
+
+    .project-history-panel {
+      grid-template-rows: auto auto minmax(0, 1fr);
+    }
+
+    .task-progress-panel {
+      grid-template-rows: auto auto minmax(330px, auto) minmax(0, 1fr);
+    }
+
+    .side textarea {
+      min-height: 96px;
     }
 
     .dialog-head {
@@ -848,6 +1020,14 @@
 
       .updates-layout {
         grid-template-columns: 1fr;
+      }
+
+      .task-head {
+        grid-template-columns: 1fr;
+      }
+
+      .task-side {
+        justify-content: flex-start;
       }
     }
 
@@ -952,6 +1132,7 @@
           <button data-view="milestones">◇ Milestones</button>
           <button data-view="updates">✎ Updates</button>
         </nav>
+        <div class="health-box" id="workstreamHealth" hidden></div>
         <div class="account-box">
           <div id="syncState" class="sync-state">Local</div>
           <div id="accountEmail"></div>
@@ -1125,41 +1306,51 @@
   </div>
 
   <div class="drawer side" id="projectHistoryDrawer">
-    <div class="dialog">
+    <div class="dialog project-history-panel">
       <div class="dialog-head">
         <h3>Project History</h3>
         <button class="icon" type="button" data-close-dialog>×</button>
       </div>
-      <div class="history-list" id="projectHistoryList"></div>
+      <div id="projectHistorySummary"></div>
+      <div class="drawer-section history-section">
+        <p class="section-title">Versions</p>
+        <div class="timeline" id="projectHistoryList"></div>
+      </div>
     </div>
   </div>
 
   <div class="drawer side" id="taskProgressDrawer">
-    <form class="dialog compact-form" id="taskProgressForm">
+    <form class="dialog compact-form task-progress-panel" id="taskProgressForm">
       <div class="dialog-head">
         <h3 id="taskProgressTitle">Task Progress</h3>
         <button class="icon" type="button" data-close-dialog>×</button>
       </div>
-      <div class="field">
-        <label for="progressSubmitter">登记人</label>
-        <input id="progressSubmitter" required>
+      <div class="drawer-summary" id="taskProgressSummary"></div>
+      <div class="drawer-section update-section">
+        <p class="section-title">New Update</p>
+        <div class="two-col">
+          <div class="field">
+            <label for="progressSubmitter">登记人</label>
+            <input id="progressSubmitter" required>
+          </div>
+          <div class="field">
+            <label for="progressValue">进度</label>
+            <input id="progressValue" class="progress-number" type="number" min="0" max="100" required>
+          </div>
+        </div>
+        <div class="field">
+          <label for="progressNote">进度说明</label>
+          <textarea id="progressNote" placeholder="完成内容、风险、下一步"></textarea>
+        </div>
+        <div class="field">
+          <label for="progressAttachments">附件</label>
+          <input id="progressAttachments" class="file-box" type="file" multiple>
+        </div>
+        <button class="primary" type="submit">登记进度</button>
       </div>
-      <div class="field">
-        <label for="progressValue">进度百分比</label>
-        <input id="progressValue" type="number" min="0" max="100" required>
-      </div>
-      <div class="field">
-        <label for="progressNote">进度说明</label>
-        <textarea id="progressNote" placeholder="完成内容、风险、下一步"></textarea>
-      </div>
-      <div class="field">
-        <label for="progressAttachments">附件</label>
-        <input id="progressAttachments" type="file" multiple>
-      </div>
-      <button class="primary" type="submit">登记进度</button>
-      <div class="field">
-        <label>历史登记</label>
-        <div class="history-list" id="taskProgressHistory"></div>
+      <div class="drawer-section history-section">
+        <p class="section-title">History</p>
+        <div class="timeline" id="taskProgressHistory"></div>
       </div>
     </form>
   </div>
@@ -1655,11 +1846,32 @@
 
     function renderProjectHistory(projectId) {
       const items = projectHistory(projectId);
+      const latest = items[0];
+      document.getElementById("projectHistorySummary").innerHTML = latest ? `
+        <div class="drawer-summary">
+          <div class="summary-row">
+            <div>
+              <strong>${escapeHtml(latest.name)}</strong>
+              <div class="muted">${escapeHtml(latest.summary || "")}</div>
+            </div>
+            <span class="tag">Latest v${escapeHtml(latest.version || 1)}</span>
+          </div>
+          <div class="bar"><span style="--w:${projectProgress(latest)}%;--c:var(--blue);"></span></div>
+          <div class="project-meta">
+            <span class="tag">${projectProgress(latest)}% Progress</span>
+            <span class="tag">${items.length} Versions</span>
+            <span class="tag">${escapeHtml(projectRole(latest))}</span>
+          </div>
+        </div>
+      ` : "";
       document.getElementById("projectHistoryList").innerHTML = items.length
         ? items.map((project) => `
-          <div class="history-item">
-            <strong>${escapeHtml(project.name)}</strong>
-            <span class="muted">Version ${escapeHtml(project.version || 1)} · ${escapeHtml(project.updatedAt || project.createdAt || "-")} · ${escapeHtml(project.syncStatus || "synced")}</span>
+          <div class="timeline-item">
+            <div class="timeline-head">
+              <strong>Version ${escapeHtml(project.version || 1)}</strong>
+              <span class="tag">${projectProgress(project)}%</span>
+            </div>
+            <span class="timeline-meta">${escapeHtml(project.updatedAt || project.createdAt || "-")} · ${escapeHtml(project.syncStatus || "synced")}</span>
             <div class="bar"><span style="--w:${projectProgress(project)}%;--c:var(--blue);"></span></div>
             <div class="actions" style="justify-content:flex-start;">
               <button type="button" data-action="open-project" data-project="${project.id}">Open</button>
@@ -1673,9 +1885,12 @@
       const logs = [...(task.progressLogs || [])].reverse();
       document.getElementById("taskProgressHistory").innerHTML = logs.length
         ? logs.map((log) => `
-          <div class="history-item">
-            <strong>${escapeHtml(log.progress)}% · ${escapeHtml(log.submitterName || "Unknown")}</strong>
-            <span class="muted">${escapeHtml(log.date || "-")}</span>
+          <div class="timeline-item">
+            <div class="timeline-head">
+              <strong>${escapeHtml(log.progress)}%</strong>
+              <span class="tag">${escapeHtml(log.submitterName || "Unknown")}</span>
+            </div>
+            <span class="timeline-meta">${escapeHtml(log.date || "-")}</span>
             ${log.note ? `<span>${escapeHtml(log.note)}</span>` : ""}
             ${(log.attachments || []).length ? `<div class="attachment-list">${log.attachments.map((file) => `
               ${file.dataUrl ? `<a href="${escapeHtml(file.dataUrl)}" download="${escapeHtml(file.name)}">${escapeHtml(file.name)}</a>` : `<span>${escapeHtml(file.name)}</span>`}
@@ -1689,11 +1904,23 @@
       const task = findTask(wsId, taskId);
       if (!task) return;
       activeTaskContext = { wsId, taskId };
+      const pct = taskProgress(task);
       document.getElementById("taskProgressTitle").textContent = task.name;
       document.getElementById("progressSubmitter").value = currentUser()?.name || "";
-      document.getElementById("progressValue").value = taskProgress(task);
+      document.getElementById("progressValue").value = pct;
       document.getElementById("progressNote").value = "";
       document.getElementById("progressAttachments").value = "";
+      document.getElementById("taskProgressSummary").innerHTML = `
+        <div class="summary-row">
+          <div>
+            <strong>${pct}%</strong>
+            <div class="muted">${escapeHtml(task.owner || "No owner")} · ${(task.progressLogs || []).length} logs</div>
+          </div>
+          <span class="tag">${task.done ? "Done" : "In progress"}</span>
+        </div>
+        <div class="bar"><span style="--w:${pct}%;--c:var(--teal);"></span></div>
+        ${task.description ? `<div class="muted">${escapeHtml(task.description)}</div>` : ""}
+      `;
       const editable = canEditProject(currentProject());
       document.getElementById("progressSubmitter").disabled = !editable;
       document.getElementById("progressValue").disabled = !editable;
@@ -1834,6 +2061,7 @@
       document.getElementById("importBtn").hidden = activeView !== "projects";
 
       if (activeView === "projects") {
+        renderWorkstreamHealth(null);
         document.getElementById("pageTitle").textContent = "Projects";
         document.getElementById("pageSubtitle").textContent = "选择项目或创建新的 Program。";
         renderProjects();
@@ -1901,7 +2129,33 @@
         : `<div class="empty">No programs yet. Create your first Program.</div>`;
     }
 
+    function renderWorkstreamHealth(project) {
+      const box = document.getElementById("workstreamHealth");
+      if (!project || activeView === "projects") {
+        box.hidden = true;
+        box.innerHTML = "";
+        return;
+      }
+      box.hidden = false;
+      box.innerHTML = `
+        <h3>Workstream Health</h3>
+        ${project.workstreams.map((ws) => {
+          const progress = workstreamProgress(ws);
+          return `
+            <div class="health-item">
+              <div class="health-head">
+                <span>${escapeHtml(ws.name)}</span>
+                <strong>${progress}%</strong>
+              </div>
+              <div class="bar"><span style="--w:${progress}%;--c:${statusColor(ws.status)};"></span></div>
+            </div>
+          `;
+        }).join("")}
+      `;
+    }
+
     function renderProgram(project, editable) {
+      renderWorkstreamHealth(project);
       renderMetrics(project);
       renderWorkstreams("overviewWorkstreams", project, false);
       renderWorkstreams("workstreamGrid", project, editable);
@@ -1946,38 +2200,40 @@
           return `
             <div class="task ${task.done ? "done" : ""}">
               <input type="checkbox" ${task.done ? "checked" : ""} ${editable ? "" : "disabled"} data-action="toggle-task" data-ws="${ws.id}" data-task="${task.id}">
-              <span class="task-name">${escapeHtml(task.name)}${milestoneLabel ? `<span class="milestone-badge">${escapeHtml(milestoneLabel)}</span>` : ""}</span>
-              <div class="task-side">
-                ${editable ? `<input value="${escapeHtml(task.owner || "")}" placeholder="Owner" data-action="update-task-owner" data-ws="${ws.id}" data-task="${task.id}">` : `<span class="tag">Owner: ${escapeHtml(task.owner || "-")}</span>`}
-                <button class="progress-chip" type="button" data-action="open-task-progress" data-ws="${ws.id}" data-task="${task.id}">${taskPct}%</button>
-                ${editable ? `<button class="icon" type="button" data-action="delete-task" data-ws="${ws.id}" data-task="${task.id}">×</button>` : ""}
-              </div>
-              ${editable ? `<textarea class="task-description-input" placeholder="任务描述 / scope / acceptance criteria" data-action="update-task-description" data-ws="${ws.id}" data-task="${task.id}">${escapeHtml(task.description || "")}</textarea>` : `${task.description ? `<div class="task-description">${escapeHtml(task.description)}</div>` : ""}`}
-              ${editable ? `
-                <div class="task-meta">
-                  <select data-action="update-task-milestone" data-ws="${ws.id}" data-task="${task.id}">
-                    <option value="">No Milestone</option>
-                    ${milestoneOptions}
-                  </select>
-                  <input type="date" value="${escapeHtml(task.targetDate || "")}" data-action="update-task-date" data-field="targetDate" data-ws="${ws.id}" data-task="${task.id}">
-                  <input type="date" value="${escapeHtml(task.actualDate || "")}" data-action="update-task-date" data-field="actualDate" data-ws="${ws.id}" data-task="${task.id}">
+              <div class="task-main">
+                <div class="task-head">
+                  <span class="task-name">${escapeHtml(task.name)}${milestoneLabel ? `<span class="milestone-badge">${escapeHtml(milestoneLabel)}</span>` : ""}</span>
+                  <div class="task-side">
+                    ${editable ? `<input value="${escapeHtml(task.owner || "")}" placeholder="Owner" data-action="update-task-owner" data-ws="${ws.id}" data-task="${task.id}">` : `<span class="tag">Owner: ${escapeHtml(task.owner || "-")}</span>`}
+                    <button class="progress-chip" type="button" data-action="open-task-progress" data-ws="${ws.id}" data-task="${task.id}">${taskPct}%</button>
+                    ${editable ? `<button class="icon" type="button" data-action="delete-task" data-ws="${ws.id}" data-task="${task.id}">×</button>` : ""}
+                  </div>
                 </div>
-              ` : `
-                <div class="task-meta">
-                  <span class="tag">Progress: ${taskPct}%</span>
-                  <span class="tag">Target: ${escapeHtml(task.targetDate || "-")}</span>
-                  <span class="tag">Actual: ${escapeHtml(task.actualDate || "-")}</span>
+                ${editable ? `<textarea class="task-description-input" placeholder="任务描述 / scope / acceptance criteria" data-action="update-task-description" data-ws="${ws.id}" data-task="${task.id}">${escapeHtml(task.description || "")}</textarea>` : `${task.description ? `<div class="task-description">${escapeHtml(task.description)}</div>` : ""}`}
+                ${editable ? `
+                  <div class="task-meta">
+                    <select data-action="update-task-milestone" data-ws="${ws.id}" data-task="${task.id}">
+                      <option value="">No Milestone</option>
+                      ${milestoneOptions}
+                    </select>
+                    <input type="date" value="${escapeHtml(task.targetDate || "")}" data-action="update-task-date" data-field="targetDate" data-ws="${ws.id}" data-task="${task.id}">
+                    <input type="date" value="${escapeHtml(task.actualDate || "")}" data-action="update-task-date" data-field="actualDate" data-ws="${ws.id}" data-task="${task.id}">
+                  </div>
+                ` : `
+                  <div class="task-meta">
+                    <span class="tag">Target: ${escapeHtml(task.targetDate || "-")}</span>
+                    <span class="tag">Actual: ${escapeHtml(task.actualDate || "-")}</span>
+                  </div>
+                `}
+                <div class="task-progress">
+                  <div class="bar"><span style="--w:${taskPct}%;--c:var(--teal);"></span></div>
                 </div>
-              `}
-              <div class="task-progress">
-                <div class="bar"><span style="--w:${taskPct}%;--c:var(--teal);"></span></div>
-                <strong>${taskPct}%</strong>
+                ${subtasks.length ? `<div class="subtask-list">${subtaskItems}</div>` : ""}
+                ${editable ? `<form class="subtask-form" data-action="add-subtask" data-ws="${ws.id}" data-task="${task.id}">
+                  <input name="subtask" placeholder="新增子任务" required>
+                  <button type="submit">＋</button>
+                </form>` : ""}
               </div>
-              ${subtasks.length ? `<div class="subtask-list">${subtaskItems}</div>` : ""}
-              ${editable ? `<form class="subtask-form" data-action="add-subtask" data-ws="${ws.id}" data-task="${task.id}">
-                <input name="subtask" placeholder="新增子任务" required>
-                <button type="submit">＋</button>
-              </form>` : ""}
             </div>
           `;
         }).join("");
@@ -2293,6 +2549,12 @@
 
     document.querySelectorAll("[data-close-dialog]").forEach((button) => {
       button.addEventListener("click", () => button.closest(".drawer")?.classList.remove("open"));
+    });
+
+    document.querySelectorAll(".drawer").forEach((drawer) => {
+      drawer.addEventListener("click", (event) => {
+        if (event.target === drawer) drawer.classList.remove("open");
+      });
     });
 
     document.getElementById("shareBtn").addEventListener("click", async () => {

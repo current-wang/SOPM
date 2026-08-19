@@ -12,6 +12,7 @@ This is a standalone SaaS-style prototype. It does not modify the existing demo 
 - Open a selected Program
 - Program structure with Workstreams, Tasks, Subtasks, Milestones, and Updates
 - Task description field for scope and acceptance notes
+- Task progress log drawer with submitter, time, note, and attachments
 - Tasks can be linked to milestones and display milestone labels
 - Task progress automatically rolls up from subtasks
 - Workstream and Program progress automatically roll up from task progress
@@ -19,6 +20,7 @@ This is a standalone SaaS-style prototype. It does not modify the existing demo 
 - Offline local drafts when not signed in
 - Version-checked remote sync after sign in
 - Share a Program with registered users as `editor` or `viewer`
+- Deduplicated Projects list with a local history drawer
 
 ## Run
 
@@ -44,3 +46,5 @@ The fast SaaS version stores each Program as one JSON document in `program_proje
 The browser still keeps a local copy in `localStorage`. If the user works offline or before signing in, projects are saved locally and uploaded after sign-in.
 
 V1 sharing requires the invited person to create an account first. Email sending and unregistered invite links are intentionally left for a later version.
+
+Task attachments are stored inside the Program JSON as browser data URLs for prototype use. A production version should move files to Supabase Storage and keep only file metadata in the Program JSON.
