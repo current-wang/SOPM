@@ -441,7 +441,7 @@
 
     .task {
       display: grid;
-      grid-template-columns: auto minmax(0, 1fr) auto;
+      grid-template-columns: auto minmax(0, 1fr) minmax(112px, auto);
       align-items: start;
       gap: 8px;
       padding: 8px;
@@ -462,6 +462,29 @@
       overflow-wrap: anywhere;
       font-size: 13px;
       line-height: 1.45;
+    }
+
+    .task-side {
+      display: grid;
+      gap: 6px;
+      justify-items: end;
+    }
+
+    .task-side input {
+      width: 116px;
+      min-height: 28px;
+      padding: 5px 7px;
+      color: #42526e;
+      font-size: 12px;
+    }
+
+    .progress-chip {
+      min-height: 28px;
+      border-color: #ccfbf1;
+      background: #f0fdfa;
+      color: #0f766e;
+      font-size: 12px;
+      font-weight: 700;
     }
 
     .task-description {
@@ -514,10 +537,6 @@
       padding: 5px 7px;
       color: #42526e;
       font-size: 12px;
-    }
-
-    .progress-input {
-      max-width: 92px;
     }
 
     .task-progress {
@@ -654,6 +673,26 @@
       font-size: 13px;
     }
 
+    .history-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .history-item {
+      display: grid;
+      gap: 7px;
+      padding: 10px;
+      border: 1px solid #edf0f5;
+      border-radius: 6px;
+      background: #fbfcfe;
+      font-size: 13px;
+    }
+
+    .attachment-list {
+      display: grid;
+      gap: 6px;
+    }
+
     .updates-layout {
       display: grid;
       grid-template-columns: 360px minmax(0, 1fr);
@@ -748,6 +787,12 @@
       display: flex;
     }
 
+    .drawer.side {
+      align-items: stretch;
+      justify-content: flex-end;
+      padding: 0;
+    }
+
     .dialog {
       width: min(640px, 100%);
       max-height: calc(100vh - 40px);
@@ -758,6 +803,13 @@
       box-shadow: 0 20px 70px rgba(31, 41, 55, 0.2);
       display: grid;
       gap: 12px;
+    }
+
+    .side .dialog {
+      width: min(520px, 100%);
+      min-height: 100vh;
+      max-height: 100vh;
+      border-radius: 0;
     }
 
     .dialog-head {
@@ -1072,6 +1124,46 @@
     </form>
   </div>
 
+  <div class="drawer side" id="projectHistoryDrawer">
+    <div class="dialog">
+      <div class="dialog-head">
+        <h3>Project History</h3>
+        <button class="icon" type="button" data-close-dialog>×</button>
+      </div>
+      <div class="history-list" id="projectHistoryList"></div>
+    </div>
+  </div>
+
+  <div class="drawer side" id="taskProgressDrawer">
+    <form class="dialog compact-form" id="taskProgressForm">
+      <div class="dialog-head">
+        <h3 id="taskProgressTitle">Task Progress</h3>
+        <button class="icon" type="button" data-close-dialog>×</button>
+      </div>
+      <div class="field">
+        <label for="progressSubmitter">登记人</label>
+        <input id="progressSubmitter" required>
+      </div>
+      <div class="field">
+        <label for="progressValue">进度百分比</label>
+        <input id="progressValue" type="number" min="0" max="100" required>
+      </div>
+      <div class="field">
+        <label for="progressNote">进度说明</label>
+        <textarea id="progressNote" placeholder="完成内容、风险、下一步"></textarea>
+      </div>
+      <div class="field">
+        <label for="progressAttachments">附件</label>
+        <input id="progressAttachments" type="file" multiple>
+      </div>
+      <button class="primary" type="submit">登记进度</button>
+      <div class="field">
+        <label>历史登记</label>
+        <div class="history-list" id="taskProgressHistory"></div>
+      </div>
+    </form>
+  </div>
+
   <input id="fileInput" type="file" accept="application/json" hidden>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1158,11 +1250,14 @@
     let authMode = "login";
     let activeProjectId = session?.activeProjectId || "";
     let activeView = "projects";
+    let activeTaskContext = null;
 
     const authScreen = document.getElementById("authScreen");
     const appScreen = document.getElementById("appScreen");
     const projectDialog = document.getElementById("projectDialog");
     const shareDialog = document.getElementById("shareDialog");
+    const projectHistoryDrawer = document.getElementById("projectHistoryDrawer");
+    const taskProgressDrawer = document.getElementById("taskProgressDrawer");
 
     function deepClone(value) {
       return JSON.parse(JSON.stringify(value));
@@ -1212,6 +1307,36 @@
       return store.projects.filter((project) => project.ownerId === session?.userId);
     }
 
+    function projectGroupKey(project) {
+      return project.remoteId || project.id;
+    }
+
+    function latestProjects(projects) {
+      const groups = new Map();
+      projects.forEach((project) => {
+        const key = projectGroupKey(project);
+        const group = groups.get(key) || [];
+        group.push(project);
+        groups.set(key, group);
+      });
+      return [...groups.values()].map((group) => {
+        return group.sort((a, b) => {
+          const versionDiff = (b.version || 0) - (a.version || 0);
+          if (versionDiff !== 0) return versionDiff;
+          return String(b.updatedAt || b.createdAt || "").localeCompare(String(a.updatedAt || a.createdAt || ""));
+        })[0];
+      });
+    }
+
+    function projectHistory(projectId) {
+      const project = store.projects.find((item) => item.id === projectId);
+      if (!project) return [];
+      const key = projectGroupKey(project);
+      return currentProjects()
+        .filter((item) => projectGroupKey(item) === key)
+        .sort((a, b) => (b.version || 0) - (a.version || 0));
+    }
+
     function currentProject() {
       return currentProjects().find((project) => project.id === activeProjectId) || null;
     }
@@ -1233,13 +1358,14 @@
 
     function taskProgress(task) {
       const subtasks = task.subtasks || [];
+      if ((task.progressLogs || []).length > 0) return itemProgress(task);
       if (subtasks.length === 0) return itemProgress(task);
       return Math.round(subtasks.reduce((sum, subtask) => sum + itemProgress(subtask), 0) / subtasks.length);
     }
 
     function syncTaskDone(task) {
       const subtasks = task.subtasks || [];
-      if (subtasks.length > 0) {
+      if (subtasks.length > 0 && (task.progressLogs || []).length === 0) {
         subtasks.forEach((subtask) => { subtask.done = itemProgress(subtask) >= 100; });
         task.progress = taskProgress(task);
       }
@@ -1527,6 +1653,72 @@
       alert("邀请已添加，对方登录后即可看到项目。");
     }
 
+    function renderProjectHistory(projectId) {
+      const items = projectHistory(projectId);
+      document.getElementById("projectHistoryList").innerHTML = items.length
+        ? items.map((project) => `
+          <div class="history-item">
+            <strong>${escapeHtml(project.name)}</strong>
+            <span class="muted">Version ${escapeHtml(project.version || 1)} · ${escapeHtml(project.updatedAt || project.createdAt || "-")} · ${escapeHtml(project.syncStatus || "synced")}</span>
+            <div class="bar"><span style="--w:${projectProgress(project)}%;--c:var(--blue);"></span></div>
+            <div class="actions" style="justify-content:flex-start;">
+              <button type="button" data-action="open-project" data-project="${project.id}">Open</button>
+            </div>
+          </div>
+        `).join("")
+        : `<div class="empty">No history yet.</div>`;
+    }
+
+    function renderTaskProgressHistory(task) {
+      const logs = [...(task.progressLogs || [])].reverse();
+      document.getElementById("taskProgressHistory").innerHTML = logs.length
+        ? logs.map((log) => `
+          <div class="history-item">
+            <strong>${escapeHtml(log.progress)}% · ${escapeHtml(log.submitterName || "Unknown")}</strong>
+            <span class="muted">${escapeHtml(log.date || "-")}</span>
+            ${log.note ? `<span>${escapeHtml(log.note)}</span>` : ""}
+            ${(log.attachments || []).length ? `<div class="attachment-list">${log.attachments.map((file) => `
+              ${file.dataUrl ? `<a href="${escapeHtml(file.dataUrl)}" download="${escapeHtml(file.name)}">${escapeHtml(file.name)}</a>` : `<span>${escapeHtml(file.name)}</span>`}
+            `).join("")}</div>` : ""}
+          </div>
+        `).join("")
+        : `<div class="empty">No progress logs yet.</div>`;
+    }
+
+    function openTaskProgress(wsId, taskId) {
+      const task = findTask(wsId, taskId);
+      if (!task) return;
+      activeTaskContext = { wsId, taskId };
+      document.getElementById("taskProgressTitle").textContent = task.name;
+      document.getElementById("progressSubmitter").value = currentUser()?.name || "";
+      document.getElementById("progressValue").value = taskProgress(task);
+      document.getElementById("progressNote").value = "";
+      document.getElementById("progressAttachments").value = "";
+      const editable = canEditProject(currentProject());
+      document.getElementById("progressSubmitter").disabled = !editable;
+      document.getElementById("progressValue").disabled = !editable;
+      document.getElementById("progressNote").disabled = !editable;
+      document.getElementById("progressAttachments").disabled = !editable;
+      document.querySelector("#taskProgressForm button[type='submit']").hidden = !editable;
+      renderTaskProgressHistory(task);
+      taskProgressDrawer.classList.add("open");
+    }
+
+    function readAttachment(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve({
+          id: crypto.randomUUID(),
+          name: file.name,
+          type: file.type,
+          size: file.size,
+          dataUrl: reader.result
+        });
+        reader.onerror = () => reject(reader.error);
+        reader.readAsDataURL(file);
+      });
+    }
+
     function normalizeProject(project) {
       if (!project) return;
       project.workstreams.forEach((ws) => {
@@ -1534,6 +1726,10 @@
           task.subtasks = task.subtasks || [];
           task.milestoneId = task.milestoneId || "";
           task.description = task.description || "";
+          task.progressLogs = Array.isArray(task.progressLogs) ? task.progressLogs : [];
+          task.progressLogs.forEach((log) => {
+            log.attachments = Array.isArray(log.attachments) ? log.attachments : [];
+          });
           if (typeof task.progress !== "number") task.progress = task.done ? 100 : 0;
           task.subtasks.forEach((subtask) => {
             if (typeof subtask.progress !== "number") subtask.progress = subtask.done ? 100 : 0;
@@ -1571,6 +1767,10 @@
           task.targetDate = task.targetDate || "";
           task.actualDate = task.actualDate || "";
           task.subtasks = Array.isArray(task.subtasks) ? task.subtasks : [];
+          task.progressLogs = Array.isArray(task.progressLogs) ? task.progressLogs : [];
+          task.progressLogs.forEach((log) => {
+            log.attachments = Array.isArray(log.attachments) ? log.attachments : [];
+          });
           if (typeof task.progress !== "number") task.progress = task.done ? 100 : 0;
           task.subtasks.forEach((subtask, subtaskIndex) => {
             subtask.id = subtask.id || crypto.randomUUID();
@@ -1663,7 +1863,7 @@
     function renderProjects() {
       document.getElementById("pageTitle").contentEditable = false;
       document.getElementById("pageSubtitle").contentEditable = false;
-      const projects = currentProjects();
+      const projects = latestProjects(currentProjects());
       const workstreamCount = projects.reduce((sum, project) => sum + project.workstreams.length, 0);
       const openTaskCount = projects.flatMap((project) => project.workstreams.flatMap((ws) => ws.tasks)).filter((task) => taskProgress(task) < 100).length;
       const avg = projects.length === 0 ? 0 : Math.round(projects.reduce((sum, project) => sum + projectProgress(project), 0) / projects.length);
@@ -1692,6 +1892,7 @@
               <div class="bar"><span style="--w:${progress}%;--c:var(--blue);"></span></div>
               <div class="actions" style="justify-content:flex-start;">
                 <button class="primary" data-action="open-project" data-project="${project.id}">Open</button>
+                <button data-action="show-project-history" data-project="${project.id}">History</button>
                 ${canEditProject(project) ? `<button class="danger" data-action="delete-project" data-project="${project.id}">Delete</button>` : ""}
               </div>
             </article>
@@ -1746,22 +1947,23 @@
             <div class="task ${task.done ? "done" : ""}">
               <input type="checkbox" ${task.done ? "checked" : ""} ${editable ? "" : "disabled"} data-action="toggle-task" data-ws="${ws.id}" data-task="${task.id}">
               <span class="task-name">${escapeHtml(task.name)}${milestoneLabel ? `<span class="milestone-badge">${escapeHtml(milestoneLabel)}</span>` : ""}</span>
-              ${editable ? `<button class="icon" type="button" data-action="delete-task" data-ws="${ws.id}" data-task="${task.id}">×</button>` : ""}
+              <div class="task-side">
+                ${editable ? `<input value="${escapeHtml(task.owner || "")}" placeholder="Owner" data-action="update-task-owner" data-ws="${ws.id}" data-task="${task.id}">` : `<span class="tag">Owner: ${escapeHtml(task.owner || "-")}</span>`}
+                <button class="progress-chip" type="button" data-action="open-task-progress" data-ws="${ws.id}" data-task="${task.id}">${taskPct}%</button>
+                ${editable ? `<button class="icon" type="button" data-action="delete-task" data-ws="${ws.id}" data-task="${task.id}">×</button>` : ""}
+              </div>
               ${editable ? `<textarea class="task-description-input" placeholder="任务描述 / scope / acceptance criteria" data-action="update-task-description" data-ws="${ws.id}" data-task="${task.id}">${escapeHtml(task.description || "")}</textarea>` : `${task.description ? `<div class="task-description">${escapeHtml(task.description)}</div>` : ""}`}
               ${editable ? `
                 <div class="task-meta">
-                  <input value="${escapeHtml(task.owner || "")}" placeholder="Owner" data-action="update-task-owner" data-ws="${ws.id}" data-task="${task.id}">
                   <select data-action="update-task-milestone" data-ws="${ws.id}" data-task="${task.id}">
                     <option value="">No Milestone</option>
                     ${milestoneOptions}
                   </select>
-                  <input class="progress-input" type="number" min="0" max="100" value="${taskPct}" ${subtasks.length ? "disabled" : ""} title="${subtasks.length ? "由子任务汇算" : "Progress"}" data-action="update-task-progress" data-ws="${ws.id}" data-task="${task.id}">
                   <input type="date" value="${escapeHtml(task.targetDate || "")}" data-action="update-task-date" data-field="targetDate" data-ws="${ws.id}" data-task="${task.id}">
                   <input type="date" value="${escapeHtml(task.actualDate || "")}" data-action="update-task-date" data-field="actualDate" data-ws="${ws.id}" data-task="${task.id}">
                 </div>
               ` : `
                 <div class="task-meta">
-                  <span class="tag">Owner: ${escapeHtml(task.owner || "-")}</span>
                   <span class="tag">Progress: ${taskPct}%</span>
                   <span class="tag">Target: ${escapeHtml(task.targetDate || "-")}</span>
                   <span class="tag">Actual: ${escapeHtml(task.actualDate || "-")}</span>
@@ -2215,6 +2417,18 @@
 
       if (action === "open-project") {
         openProject(event.target.dataset.project);
+        projectHistoryDrawer.classList.remove("open");
+        return;
+      }
+
+      if (action === "show-project-history") {
+        renderProjectHistory(event.target.dataset.project);
+        projectHistoryDrawer.classList.add("open");
+        return;
+      }
+
+      if (action === "open-task-progress") {
+        openTaskProgress(event.target.dataset.ws, event.target.dataset.task);
         return;
       }
 
@@ -2301,6 +2515,35 @@
       });
       event.target.reset();
       saveAndRender();
+    });
+
+    document.getElementById("taskProgressForm").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const project = currentProject();
+      if (!canEditProject(project) || !activeTaskContext) return;
+      const task = findTask(activeTaskContext.wsId, activeTaskContext.taskId);
+      if (!task) return;
+      const files = [...document.getElementById("progressAttachments").files];
+      const attachments = [];
+      for (const file of files) {
+        attachments.push(await readAttachment(file));
+      }
+      const progress = clampProgress(document.getElementById("progressValue").value);
+      task.progressLogs = task.progressLogs || [];
+      task.progressLogs.push({
+        id: crypto.randomUUID(),
+        date: new Date().toISOString(),
+        submitterName: document.getElementById("progressSubmitter").value.trim(),
+        progress,
+        note: document.getElementById("progressNote").value.trim(),
+        attachments
+      });
+      task.progress = progress;
+      syncTaskDone(task);
+      saveStore();
+      syncProject(project);
+      render();
+      openTaskProgress(activeTaskContext.wsId, activeTaskContext.taskId);
     });
 
     document.getElementById("exportBtn").addEventListener("click", () => {
