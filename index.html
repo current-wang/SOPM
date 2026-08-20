@@ -472,7 +472,7 @@
       grid-template-columns: auto minmax(0, 1fr);
       align-items: start;
       gap: 8px 10px;
-      padding: 10px;
+      padding: 12px;
       border: 1px solid #edf0f5;
       border-radius: 6px;
       background: #fbfcfe;
@@ -486,6 +486,9 @@
     }
 
     .task-name {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
       min-width: 0;
       overflow-wrap: anywhere;
       font-size: 13px;
@@ -515,11 +518,28 @@
       flex-wrap: wrap;
     }
 
-    .task-side input {
+    .task-side input,
+    .task-side select {
       width: 128px;
       min-height: 28px;
       padding: 5px 7px;
       color: #42526e;
+      font-size: 12px;
+    }
+
+    .task-side select {
+      width: 142px;
+    }
+
+    .task-order {
+      display: inline-flex;
+      gap: 4px;
+    }
+
+    .task-order button {
+      width: 28px;
+      min-height: 28px;
+      padding: 0;
       font-size: 12px;
     }
 
@@ -530,6 +550,21 @@
       color: #0f766e;
       font-size: 12px;
       font-weight: 700;
+    }
+
+    .blocker-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 22px;
+      height: 22px;
+      padding: 0 6px;
+      border-radius: 999px;
+      background: #dc2626;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 800;
+      line-height: 1;
     }
 
     .task-description {
@@ -575,7 +610,8 @@
       gap: 6px;
     }
 
-    .task-meta input {
+    .task-meta input,
+    .task-meta select {
       min-height: 28px;
       padding: 5px 7px;
       color: #42526e;
@@ -596,7 +632,7 @@
     }
 
     .task.done .task-name,
-    .subtask.done span {
+    .subtask.done .subtask-head > span:first-child {
       color: var(--muted);
       text-decoration: line-through;
     }
@@ -604,15 +640,72 @@
     .subtask-list {
       display: grid;
       gap: 6px;
+      padding: 8px;
+      border-left: 2px solid #dbeafe;
+      background: #f8fbff;
+      border-radius: 6px;
     }
 
     .subtask {
       display: grid;
-      grid-template-columns: auto minmax(0, 1fr) auto auto;
-      align-items: center;
+      grid-template-columns: auto minmax(0, 1fr);
+      align-items: start;
       gap: 7px;
+      padding: 6px;
+      border: 1px solid #edf0f5;
+      border-radius: 6px;
+      background: #fff;
       color: #42526e;
       font-size: 12px;
+    }
+
+    .subtask-main {
+      display: grid;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .subtask-head {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: start;
+    }
+
+    .subtask-side {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+
+    .subtask-side input,
+    .subtask-side select {
+      width: 112px;
+      min-height: 26px;
+      padding: 4px 6px;
+      font-size: 12px;
+    }
+
+    .subtask-detail {
+      grid-column: 2 / -1;
+      display: grid;
+      grid-template-columns: minmax(140px, 1fr) repeat(2, minmax(112px, 140px));
+      gap: 6px;
+      align-items: center;
+    }
+
+    .subtask-detail input {
+      min-height: 26px;
+      padding: 4px 6px;
+      font-size: 12px;
+    }
+
+    .subtask-description {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
     }
 
     .subtask input[type="checkbox"] {
@@ -629,7 +722,7 @@
 
     .subtask-form {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-columns: minmax(150px, 1.2fr) minmax(110px, 0.7fr) minmax(120px, 0.8fr) minmax(140px, 1fr) repeat(2, minmax(112px, 0.6fr)) auto;
       gap: 6px;
     }
 
@@ -800,6 +893,85 @@
       font-size: 12px;
     }
 
+    .link-list {
+      display: grid;
+      gap: 6px;
+    }
+
+    .link-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .log-detail {
+      display: grid;
+      gap: 6px;
+      padding: 8px 10px;
+      border: 1px solid #edf0f5;
+      border-radius: 6px;
+      background: #fbfcfe;
+      color: #42526e;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .log-detail strong {
+      color: #172b4d;
+      font-size: 11px;
+      text-transform: uppercase;
+    }
+
+    .progress-pipeline {
+      display: grid;
+      gap: 8px;
+    }
+
+    .pipeline-item {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: center;
+      padding: 8px;
+      border: 1px solid #edf0f5;
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .pipeline-item.active {
+      border-color: #93c5fd;
+      background: #eff6ff;
+    }
+
+    .pipeline-main {
+      display: grid;
+      gap: 5px;
+      min-width: 0;
+    }
+
+    .pipeline-title {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+      color: #172b4d;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .pipeline-title span:last-child {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .pipeline-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+
     .timeline {
       display: grid;
       align-content: start;
@@ -884,6 +1056,38 @@
     .updates {
       display: grid;
       gap: 10px;
+    }
+
+    .owner-filter {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin: 0 0 14px;
+    }
+
+    .metrics + .owner-filter {
+      margin-top: 20px;
+    }
+
+    .owner-filter span {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .owner-filter button {
+      min-height: 34px;
+      border-color: #dbeafe;
+      background: #f8fbff;
+      color: #42526e;
+      font-weight: 700;
+    }
+
+    .owner-filter button.active {
+      border-color: var(--blue);
+      background: #eef4ff;
+      color: #1d4ed8;
     }
 
     .update {
@@ -1007,7 +1211,13 @@
 
     @media (min-width: 1680px) {
       .workstream-grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: repeat(2, minmax(560px, 1fr));
+      }
+    }
+
+    @media (max-width: 1380px) {
+      .workstream-grid {
+        grid-template-columns: 1fr;
       }
     }
 
@@ -1081,6 +1291,30 @@
       .subtask-list,
       .subtask-form {
         grid-column: 2 / -1;
+      }
+
+      .subtask,
+      .subtask-head {
+        grid-template-columns: auto minmax(0, 1fr);
+      }
+
+      .subtask-head {
+        grid-template-columns: 1fr;
+      }
+
+      .subtask-side {
+        justify-content: flex-start;
+      }
+
+      .subtask-side input,
+      .subtask-side select,
+      .subtask-side button {
+        width: 100%;
+      }
+
+      .subtask-detail,
+      .subtask-form {
+        grid-template-columns: 1fr;
       }
     }
   </style>
@@ -1199,10 +1433,12 @@
               <strong id="targetCompletion">-</strong>
             </div>
           </div>
+          <div class="owner-filter" id="overviewOwnerFilter"></div>
           <div class="grid workstream-grid" id="overviewWorkstreams" style="margin-top:18px;"></div>
         </section>
 
         <section class="screen" id="structureView">
+          <div class="owner-filter" id="structureOwnerFilter"></div>
           <div class="grid workstream-grid" id="workstreamGrid"></div>
         </section>
 
@@ -1227,7 +1463,8 @@
                 <select id="updateStatus">
                   <option value="green">Green / On Track</option>
                   <option value="yellow">Yellow / At Risk</option>
-                  <option value="red">Red / Blocked</option>
+                  <option value="red">Red / At Risk</option>
+                  <option value="blocked">Blocked / 卡点阻塞</option>
                 </select>
               </div>
               <div class="field">
@@ -1339,12 +1576,40 @@
           </div>
         </div>
         <div class="field">
+          <label for="progressStatus">状态</label>
+          <select id="progressStatus">
+            <option value="green">Green / Done</option>
+            <option value="yellow">Yellow / In Progress</option>
+            <option value="red">Red / At Risk</option>
+            <option value="blocked">Blocked / 卡点阻塞</option>
+          </select>
+        </div>
+        <div class="field">
           <label for="progressNote">进度说明</label>
           <textarea id="progressNote" placeholder="完成内容、风险、下一步"></textarea>
+        </div>
+        <div class="two-col">
+          <div class="field">
+            <label for="progressNextAction">Next Action</label>
+            <input id="progressNextAction" placeholder="下一步动作">
+          </div>
+          <div class="field">
+            <label for="progressSupportNeeded">Support Needed</label>
+            <input id="progressSupportNeeded" placeholder="需要谁支持">
+          </div>
+        </div>
+        <div class="field">
+          <label for="progressBlocker">Blocker</label>
+          <textarea id="progressBlocker" placeholder="阻塞点 / 风险 / 待决策"></textarea>
         </div>
         <div class="field">
           <label for="progressAttachments">附件</label>
           <input id="progressAttachments" class="file-box" type="file" multiple>
+        </div>
+        <div class="field">
+          <label>附件链接</label>
+          <div class="link-list" id="progressLinkList"></div>
+          <button type="button" data-action="add-progress-link">＋ Link</button>
         </div>
         <button class="primary" type="submit">登记进度</button>
       </div>
@@ -1384,9 +1649,9 @@
           goal: "Define the program charter, success metrics, stakeholders, and decision cadence.",
           status: "yellow",
           tasks: [
-            { id: "st-1", name: "Program charter", owner: "Program Lead", milestoneId: "m1", targetDate: "", actualDate: "", subtasks: [], done: false },
-            { id: "st-2", name: "Success metrics", owner: "Sponsor", milestoneId: "m1", targetDate: "", actualDate: "", subtasks: [], done: false },
-            { id: "st-3", name: "Steering cadence", owner: "PMO", milestoneId: "m1", targetDate: "", actualDate: "", subtasks: [], done: false }
+            { id: "st-1", name: "Program charter", owner: "Program Lead", status: "yellow", milestoneId: "m1", targetDate: "", actualDate: "", subtasks: [], done: false },
+            { id: "st-2", name: "Success metrics", owner: "Sponsor", status: "yellow", milestoneId: "m1", targetDate: "", actualDate: "", subtasks: [], done: false },
+            { id: "st-3", name: "Steering cadence", owner: "PMO", status: "yellow", milestoneId: "m1", targetDate: "", actualDate: "", subtasks: [], done: false }
           ]
         },
         {
@@ -1396,9 +1661,9 @@
           goal: "Coordinate execution, dependency tracking, launch readiness, and operating handover.",
           status: "yellow",
           tasks: [
-            { id: "dl-1", name: "Launch checklist", owner: "Delivery Lead", milestoneId: "m2", targetDate: "", actualDate: "", subtasks: [], done: false },
-            { id: "dl-2", name: "Operating model", owner: "Operations", milestoneId: "m3", targetDate: "", actualDate: "", subtasks: [], done: false },
-            { id: "dl-3", name: "Risk register", owner: "PMO", milestoneId: "m1", targetDate: "", actualDate: "", subtasks: [], done: false }
+            { id: "dl-1", name: "Launch checklist", owner: "Delivery Lead", status: "yellow", milestoneId: "m2", targetDate: "", actualDate: "", subtasks: [], done: false },
+            { id: "dl-2", name: "Operating model", owner: "Operations", status: "yellow", milestoneId: "m3", targetDate: "", actualDate: "", subtasks: [], done: false },
+            { id: "dl-3", name: "Risk register", owner: "PMO", status: "yellow", milestoneId: "m1", targetDate: "", actualDate: "", subtasks: [], done: false }
           ]
         },
         {
@@ -1408,9 +1673,9 @@
           goal: "Build the roadmap, backlog, release process, demo, and technical assets.",
           status: "yellow",
           tasks: [
-            { id: "pt-1", name: "Roadmap", owner: "Product Lead", milestoneId: "m1", targetDate: "", actualDate: "", subtasks: [], done: false },
-            { id: "pt-2", name: "Backlog", owner: "Product Manager", milestoneId: "m2", targetDate: "", actualDate: "", subtasks: [], done: false },
-            { id: "pt-3", name: "Demo release", owner: "Engineering", milestoneId: "m2", targetDate: "", actualDate: "", subtasks: [], done: false }
+            { id: "pt-1", name: "Roadmap", owner: "Product Lead", status: "yellow", milestoneId: "m1", targetDate: "", actualDate: "", subtasks: [], done: false },
+            { id: "pt-2", name: "Backlog", owner: "Product Manager", status: "yellow", milestoneId: "m2", targetDate: "", actualDate: "", subtasks: [], done: false },
+            { id: "pt-3", name: "Demo release", owner: "Engineering", status: "yellow", milestoneId: "m2", targetDate: "", actualDate: "", subtasks: [], done: false }
           ]
         },
         {
@@ -1420,9 +1685,9 @@
           goal: "Prepare customer messaging, pilot plan, pricing, and launch communications.",
           status: "yellow",
           tasks: [
-            { id: "gt-1", name: "Pilot customer plan", owner: "Sales", milestoneId: "m3", targetDate: "", actualDate: "", subtasks: [], done: false },
-            { id: "gt-2", name: "Launch messaging", owner: "Marketing", milestoneId: "m3", targetDate: "", actualDate: "", subtasks: [], done: false },
-            { id: "gt-3", name: "Pricing draft", owner: "GTM Lead", milestoneId: "m2", targetDate: "", actualDate: "", subtasks: [], done: false }
+            { id: "gt-1", name: "Pilot customer plan", owner: "Sales", status: "yellow", milestoneId: "m3", targetDate: "", actualDate: "", subtasks: [], done: false },
+            { id: "gt-2", name: "Launch messaging", owner: "Marketing", status: "yellow", milestoneId: "m3", targetDate: "", actualDate: "", subtasks: [], done: false },
+            { id: "gt-3", name: "Pricing draft", owner: "GTM Lead", status: "yellow", milestoneId: "m2", targetDate: "", actualDate: "", subtasks: [], done: false }
           ]
         }
       ],
@@ -1441,6 +1706,7 @@
     let authMode = "login";
     let activeProjectId = session?.activeProjectId || "";
     let activeView = "projects";
+    let activeOwnerFilter = "All";
     let activeTaskContext = null;
 
     const authScreen = document.getElementById("authScreen");
@@ -1554,6 +1820,14 @@
       return Math.round(subtasks.reduce((sum, subtask) => sum + itemProgress(subtask), 0) / subtasks.length);
     }
 
+    function itemBlocked(item) {
+      return item?.status === "blocked";
+    }
+
+    function subtaskBlockerCount(task) {
+      return (task.subtasks || []).filter((subtask) => itemBlocked(subtask)).length;
+    }
+
     function syncTaskDone(task) {
       const subtasks = task.subtasks || [];
       if (subtasks.length > 0 && (task.progressLogs || []).length === 0) {
@@ -1561,6 +1835,19 @@
         task.progress = taskProgress(task);
       }
       task.done = taskProgress(task) >= 100;
+      const childBlockers = subtaskBlockerCount(task);
+      if (childBlockers > 0) {
+        task.childBlocked = true;
+        task.status = "blocked";
+        return;
+      }
+      if (task.childBlocked && task.status === "blocked") {
+        task.childBlocked = false;
+        task.status = task.done ? "green" : "yellow";
+      }
+      if (itemBlocked(task)) return;
+      if (task.done) task.status = "green";
+      else if (task.status === "green") task.status = "yellow";
     }
 
     function workstreamProgress(ws) {
@@ -1577,12 +1864,14 @@
     function statusLabel(status) {
       if (status === "green") return "🟢";
       if (status === "yellow") return "🟡";
+      if (status === "blocked") return "⛔";
       return "🔴";
     }
 
     function statusColor(status) {
       if (status === "green") return "var(--green)";
       if (status === "yellow") return "var(--yellow)";
+      if (status === "blocked") return "var(--red)";
       return "var(--red)";
     }
 
@@ -1881,53 +2170,134 @@
         : `<div class="empty">No history yet.</div>`;
     }
 
-    function renderTaskProgressHistory(task) {
-      const logs = [...(task.progressLogs || [])].reverse();
+    function renderProgressHistory(item) {
+      const logs = [...(item.progressLogs || [])].reverse();
       document.getElementById("taskProgressHistory").innerHTML = logs.length
         ? logs.map((log) => `
           <div class="timeline-item">
             <div class="timeline-head">
               <strong>${escapeHtml(log.progress)}%</strong>
-              <span class="tag">${escapeHtml(log.submitterName || "Unknown")}</span>
+              <span class="tag">${statusLabel(log.status)} ${escapeHtml(log.submitterName || "Unknown")}</span>
             </div>
             <span class="timeline-meta">${escapeHtml(log.date || "-")}</span>
             ${log.note ? `<span>${escapeHtml(log.note)}</span>` : ""}
+            ${log.nextAction || log.blocker || log.supportNeeded ? `<div class="log-detail">
+              ${log.nextAction ? `<span><strong>Next Action</strong> ${escapeHtml(log.nextAction)}</span>` : ""}
+              ${log.blocker ? `<span><strong>Blocker</strong> ${escapeHtml(log.blocker)}</span>` : ""}
+              ${log.supportNeeded ? `<span><strong>Support Needed</strong> ${escapeHtml(log.supportNeeded)}</span>` : ""}
+            </div>` : ""}
             ${(log.attachments || []).length ? `<div class="attachment-list">${log.attachments.map((file) => `
-              ${file.dataUrl ? `<a href="${escapeHtml(file.dataUrl)}" download="${escapeHtml(file.name)}">${escapeHtml(file.name)}</a>` : `<span>${escapeHtml(file.name)}</span>`}
+              ${file.url ? `<a href="${escapeHtml(file.url)}" target="_blank" rel="noopener">${escapeHtml(file.name || file.url)}</a>` : ""}
+              ${!file.url && file.dataUrl ? `<a href="${escapeHtml(file.dataUrl)}" download="${escapeHtml(file.name)}">${escapeHtml(file.name)}</a>` : ""}
+              ${!file.url && !file.dataUrl ? `<span>${escapeHtml(file.name)}</span>` : ""}
             `).join("")}</div>` : ""}
           </div>
         `).join("")
         : `<div class="empty">No progress logs yet.</div>`;
     }
 
-    function openTaskProgress(wsId, taskId) {
+    function renderProgressPipeline(task, activeSubtaskId = "") {
+      const items = [
+        { id: "", type: "Work Item", name: task.name, item: task, progress: taskProgress(task) },
+        ...(task.subtasks || []).map((subtask) => ({
+          id: subtask.id,
+          type: "Subtask",
+          name: subtask.name,
+          item: subtask,
+          progress: itemProgress(subtask)
+        }))
+      ];
+      return `
+        <div class="progress-pipeline">
+          ${items.map((entry) => `
+            <div class="pipeline-item ${entry.id === activeSubtaskId ? "active" : ""}">
+              <div class="pipeline-main">
+                <div class="pipeline-title">
+                  <span class="tag">${escapeHtml(entry.type)}</span>
+                  <span>${escapeHtml(entry.name)}</span>
+                </div>
+                <div class="bar"><span style="--w:${entry.progress}%;--c:${statusColor(entry.item.status)};"></span></div>
+                <div class="pipeline-meta">
+                  <span class="tag">${entry.progress}%</span>
+                  <span class="tag">${statusLabel(entry.item.status)} ${escapeHtml(entry.item.status || "yellow")}</span>
+                  ${(entry.item.progressLogs || []).length ? `<span class="tag">${entry.item.progressLogs.length} Logs</span>` : ""}
+                </div>
+              </div>
+              <button type="button" data-action="open-task-progress" data-ws="${activeTaskContext.wsId}" data-task="${activeTaskContext.taskId}" data-subtask="${entry.id}">登记</button>
+            </div>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    function addProgressLinkRow(value = "", disabled = false) {
+      const list = document.getElementById("progressLinkList");
+      const row = document.createElement("div");
+      row.className = "link-row";
+      row.innerHTML = `
+        <input type="url" placeholder="https://..." value="${escapeHtml(value)}" ${disabled ? "disabled" : ""}>
+        <button class="icon" type="button" data-action="remove-progress-link" ${disabled ? "disabled" : ""}>×</button>
+      `;
+      list.appendChild(row);
+    }
+
+    function resetProgressLinks(disabled = false) {
+      document.getElementById("progressLinkList").innerHTML = "";
+      addProgressLinkRow("", disabled);
+    }
+
+    function readProgressLinks() {
+      return [...document.querySelectorAll("#progressLinkList input")]
+        .map((input) => input.value.trim())
+        .filter(Boolean)
+        .map((url) => ({
+          id: crypto.randomUUID(),
+          name: url,
+          type: "link",
+          size: 0,
+          url
+        }));
+    }
+
+    function openTaskProgress(wsId, taskId, subtaskId = "") {
       const task = findTask(wsId, taskId);
-      if (!task) return;
-      activeTaskContext = { wsId, taskId };
-      const pct = taskProgress(task);
-      document.getElementById("taskProgressTitle").textContent = task.name;
+      const item = subtaskId ? findSubtask(wsId, taskId, subtaskId) : task;
+      if (!task || !item) return;
+      activeTaskContext = { wsId, taskId, subtaskId };
+      const pct = subtaskId ? itemProgress(item) : taskProgress(task);
+      document.getElementById("taskProgressTitle").textContent = subtaskId ? `${task.name} / ${item.name}` : task.name;
       document.getElementById("progressSubmitter").value = currentUser()?.name || "";
       document.getElementById("progressValue").value = pct;
+      document.getElementById("progressStatus").value = item.status || "yellow";
       document.getElementById("progressNote").value = "";
+      document.getElementById("progressNextAction").value = "";
+      document.getElementById("progressSupportNeeded").value = "";
+      document.getElementById("progressBlocker").value = "";
       document.getElementById("progressAttachments").value = "";
       document.getElementById("taskProgressSummary").innerHTML = `
         <div class="summary-row">
           <div>
             <strong>${pct}%</strong>
-            <div class="muted">${escapeHtml(task.owner || "No owner")} · ${(task.progressLogs || []).length} logs</div>
+            <div class="muted">${escapeHtml(item.owner || task.owner || "No owner")} · ${(item.progressLogs || []).length} logs</div>
           </div>
-          <span class="tag">${task.done ? "Done" : "In progress"}</span>
+          <span class="tag">${statusLabel(item.status)} ${escapeHtml(item.status || "yellow")}</span>
         </div>
-        <div class="bar"><span style="--w:${pct}%;--c:var(--teal);"></span></div>
-        ${task.description ? `<div class="muted">${escapeHtml(task.description)}</div>` : ""}
+        ${renderProgressPipeline(task, subtaskId)}
+        ${item.description ? `<div class="muted">${escapeHtml(item.description)}</div>` : ""}
       `;
       const editable = canEditProject(currentProject());
       document.getElementById("progressSubmitter").disabled = !editable;
       document.getElementById("progressValue").disabled = !editable;
+      document.getElementById("progressStatus").disabled = !editable;
       document.getElementById("progressNote").disabled = !editable;
+      document.getElementById("progressNextAction").disabled = !editable;
+      document.getElementById("progressSupportNeeded").disabled = !editable;
+      document.getElementById("progressBlocker").disabled = !editable;
       document.getElementById("progressAttachments").disabled = !editable;
       document.querySelector("#taskProgressForm button[type='submit']").hidden = !editable;
-      renderTaskProgressHistory(task);
+      document.querySelector("[data-action='add-progress-link']").hidden = !editable;
+      resetProgressLinks(!editable);
+      renderProgressHistory(item);
       taskProgressDrawer.classList.add("open");
     }
 
@@ -1953,12 +2323,31 @@
           task.subtasks = task.subtasks || [];
           task.milestoneId = task.milestoneId || "";
           task.description = task.description || "";
+          task.status = task.status || (task.done ? "green" : "yellow");
           task.progressLogs = Array.isArray(task.progressLogs) ? task.progressLogs : [];
           task.progressLogs.forEach((log) => {
             log.attachments = Array.isArray(log.attachments) ? log.attachments : [];
+            log.nextAction = log.nextAction || "";
+            log.blocker = log.blocker || "";
+            log.supportNeeded = log.supportNeeded || "";
+            log.status = log.status || task.status || "yellow";
           });
           if (typeof task.progress !== "number") task.progress = task.done ? 100 : 0;
           task.subtasks.forEach((subtask) => {
+            subtask.description = subtask.description || "";
+            subtask.owner = subtask.owner || "";
+            subtask.milestoneId = subtask.milestoneId || task.milestoneId || "";
+            subtask.status = subtask.status || (subtask.done ? "green" : "yellow");
+            subtask.targetDate = subtask.targetDate || "";
+            subtask.actualDate = subtask.actualDate || "";
+            subtask.progressLogs = Array.isArray(subtask.progressLogs) ? subtask.progressLogs : [];
+            subtask.progressLogs.forEach((log) => {
+              log.attachments = Array.isArray(log.attachments) ? log.attachments : [];
+              log.nextAction = log.nextAction || "";
+              log.blocker = log.blocker || "";
+              log.supportNeeded = log.supportNeeded || "";
+              log.status = log.status || subtask.status || "yellow";
+            });
             if (typeof subtask.progress !== "number") subtask.progress = subtask.done ? 100 : 0;
             subtask.done = itemProgress(subtask) >= 100;
           });
@@ -1990,6 +2379,7 @@
           task.name = task.name || `Task ${taskIndex + 1}`;
           task.description = task.description || "";
           task.owner = task.owner || "";
+          task.status = task.status || (task.done ? "green" : "yellow");
           task.milestoneId = task.milestoneId || "";
           task.targetDate = task.targetDate || "";
           task.actualDate = task.actualDate || "";
@@ -1997,11 +2387,29 @@
           task.progressLogs = Array.isArray(task.progressLogs) ? task.progressLogs : [];
           task.progressLogs.forEach((log) => {
             log.attachments = Array.isArray(log.attachments) ? log.attachments : [];
+            log.nextAction = log.nextAction || "";
+            log.blocker = log.blocker || "";
+            log.supportNeeded = log.supportNeeded || "";
+            log.status = log.status || task.status || "yellow";
           });
           if (typeof task.progress !== "number") task.progress = task.done ? 100 : 0;
           task.subtasks.forEach((subtask, subtaskIndex) => {
             subtask.id = subtask.id || crypto.randomUUID();
             subtask.name = subtask.name || `Subtask ${subtaskIndex + 1}`;
+            subtask.description = subtask.description || "";
+            subtask.owner = subtask.owner || "";
+            subtask.milestoneId = subtask.milestoneId || task.milestoneId || "";
+            subtask.status = subtask.status || (subtask.done ? "green" : "yellow");
+            subtask.targetDate = subtask.targetDate || "";
+            subtask.actualDate = subtask.actualDate || "";
+            subtask.progressLogs = Array.isArray(subtask.progressLogs) ? subtask.progressLogs : [];
+            subtask.progressLogs.forEach((log) => {
+              log.attachments = Array.isArray(log.attachments) ? log.attachments : [];
+              log.nextAction = log.nextAction || "";
+              log.blocker = log.blocker || "";
+              log.supportNeeded = log.supportNeeded || "";
+              log.status = log.status || subtask.status || "yellow";
+            });
             if (typeof subtask.progress !== "number") subtask.progress = subtask.done ? 100 : 0;
             subtask.done = itemProgress(subtask) >= 100;
           });
@@ -2157,8 +2565,9 @@
     function renderProgram(project, editable) {
       renderWorkstreamHealth(project);
       renderMetrics(project);
-      renderWorkstreams("overviewWorkstreams", project, false);
-      renderWorkstreams("workstreamGrid", project, editable);
+      renderOwnerFilters(project);
+      renderWorkstreams("overviewWorkstreams", project, false, activeOwnerFilter);
+      renderWorkstreams("workstreamGrid", project, editable, activeOwnerFilter);
       renderMilestones(project, editable);
       renderUpdates(project);
       renderUpdateOptions(project);
@@ -2180,42 +2589,134 @@
       document.getElementById("targetCompletion").textContent = project.targetCompletion || "-";
     }
 
-    function renderWorkstreams(targetId, project, editable) {
-      document.getElementById(targetId).innerHTML = project.workstreams.map((ws) => {
+    function splitOwners(ownerText) {
+      return String(ownerText || "")
+        .split(/[,，、/;；&+]+/)
+        .map((owner) => owner.trim())
+        .filter(Boolean);
+    }
+
+    function taskOwners(task, ws) {
+      const owners = [
+        ...splitOwners(task.owner),
+        ...(task.subtasks || []).flatMap((subtask) => splitOwners(subtask.owner))
+      ];
+      if (owners.length) return owners;
+      const inheritedOwners = splitOwners(ws.owner);
+      return inheritedOwners.length ? inheritedOwners : ["Unassigned"];
+    }
+
+    function ownerFilterMatches(task, ws, owner) {
+      if (owner === "All") return true;
+      return taskOwners(task, ws).includes(owner);
+    }
+
+    function ownerOptions(project) {
+      const owners = new Set();
+      project.workstreams.forEach((ws) => {
+        (ws.tasks || []).forEach((task) => {
+          taskOwners(task, ws).forEach((owner) => owners.add(owner));
+        });
+      });
+      return ["All", ...[...owners].sort((a, b) => a.localeCompare(b))];
+    }
+
+    function renderOwnerFilters(project) {
+      const owners = ownerOptions(project);
+      if (!owners.includes(activeOwnerFilter)) activeOwnerFilter = "All";
+      const filterHtml = `
+        <span>Owner</span>
+        ${owners.map((owner) => {
+          const count = owner === "All"
+            ? project.workstreams.reduce((sum, ws) => sum + (ws.tasks || []).length, 0)
+            : project.workstreams.reduce((sum, ws) => sum + (ws.tasks || []).filter((task) => ownerFilterMatches(task, ws, owner)).length, 0);
+          return `<button type="button" class="${owner === activeOwnerFilter ? "active" : ""}" data-action="set-owner-filter" data-owner="${escapeHtml(owner)}">${escapeHtml(owner)} · ${count}</button>`;
+        }).join("")}
+      `;
+      document.getElementById("overviewOwnerFilter").innerHTML = filterHtml;
+      document.getElementById("structureOwnerFilter").innerHTML = filterHtml;
+    }
+
+    function renderWorkstreams(targetId, project, editable, ownerFilter = "All") {
+      const visibleWorkstreams = project.workstreams
+        .map((ws) => ({ ...ws, tasks: (ws.tasks || []).filter((task) => ownerFilterMatches(task, ws, ownerFilter)) }))
+        .filter((ws) => ws.tasks.length > 0 || ownerFilter === "All");
+      document.getElementById(targetId).innerHTML = visibleWorkstreams.length ? visibleWorkstreams.map((ws) => {
         const progress = workstreamProgress(ws);
-        const tasks = ws.tasks.map((task) => {
+        const tasks = ws.tasks.map((task, taskIndex) => {
           const taskPct = taskProgress(task);
+          const blockerCount = subtaskBlockerCount(task);
           const milestone = findMilestone(project, task.milestoneId);
           const milestoneOptions = renderMilestoneOptions(project, task.milestoneId);
-          const milestoneLabel = milestone ? milestone.name.split(" ")[0] : "";
           const subtasks = task.subtasks || [];
-          const subtaskItems = subtasks.map((subtask) => `
+          const subtaskItems = subtasks.map((subtask) => {
+            const subtaskPct = itemProgress(subtask);
+            const subtaskMilestoneOptions = renderMilestoneOptions(project, subtask.milestoneId || "");
+            const subtaskMilestone = findMilestone(project, subtask.milestoneId);
+            return `
             <div class="subtask ${subtask.done ? "done" : ""}">
               <input type="checkbox" ${subtask.done ? "checked" : ""} ${editable ? "" : "disabled"} data-action="toggle-subtask" data-ws="${ws.id}" data-task="${task.id}" data-subtask="${subtask.id}">
-              <span>${escapeHtml(subtask.name)}</span>
-              ${editable ? `<input type="number" min="0" max="100" value="${itemProgress(subtask)}" aria-label="Subtask progress" data-action="update-subtask-progress" data-ws="${ws.id}" data-task="${task.id}" data-subtask="${subtask.id}">` : `<span class="tag">${itemProgress(subtask)}%</span>`}
-              ${editable ? `<button class="icon" type="button" data-action="delete-subtask" data-ws="${ws.id}" data-task="${task.id}" data-subtask="${subtask.id}">×</button>` : ""}
+              <div class="subtask-main">
+                <div class="subtask-head">
+                  <span>${escapeHtml(subtask.name)}</span>
+                  <div class="subtask-side">
+                    ${editable ? `<input value="${escapeHtml(subtask.owner || "")}" placeholder="Owner" data-action="update-subtask-field" data-field="owner" data-ws="${ws.id}" data-task="${task.id}" data-subtask="${subtask.id}">` : `<span class="tag">Owner: ${escapeHtml(subtask.owner || "-")}</span>`}
+                    ${editable ? `<select data-action="update-subtask-field" data-field="milestoneId" data-ws="${ws.id}" data-task="${task.id}" data-subtask="${subtask.id}">
+                      <option value="">No Milestone</option>
+                      ${subtaskMilestoneOptions}
+                    </select>` : `<span class="tag">${escapeHtml(subtaskMilestone ? subtaskMilestone.name.split(" ")[0] : "No M")}</span>`}
+                    <button class="progress-chip" type="button" data-action="open-task-progress" data-ws="${ws.id}" data-task="${task.id}" data-subtask="${subtask.id}">${subtaskPct}%</button>
+                    ${editable ? `<select data-action="set-subtask-status" data-ws="${ws.id}" data-task="${task.id}" data-subtask="${subtask.id}">
+                      <option value="green" ${subtask.status === "green" ? "selected" : ""}>🟢 Done</option>
+                      <option value="yellow" ${subtask.status === "yellow" ? "selected" : ""}>🟡 At Risk</option>
+                      <option value="red" ${subtask.status === "red" ? "selected" : ""}>🔴 At Risk</option>
+                      <option value="blocked" ${subtask.status === "blocked" ? "selected" : ""}>⛔ Blocked</option>
+                    </select>` : `<span class="tag">${statusLabel(subtask.status)} ${escapeHtml(subtask.status)}</span>`}
+                    ${editable ? `<button class="icon" type="button" data-action="delete-subtask" data-ws="${ws.id}" data-task="${task.id}" data-subtask="${subtask.id}">×</button>` : ""}
+                  </div>
+                </div>
+                ${editable ? `<div class="subtask-detail">
+                  <input value="${escapeHtml(subtask.description || "")}" placeholder="描述" data-action="update-subtask-field" data-field="description" data-ws="${ws.id}" data-task="${task.id}" data-subtask="${subtask.id}">
+                  <input type="date" value="${escapeHtml(subtask.targetDate || "")}" data-action="update-subtask-field" data-field="targetDate" data-ws="${ws.id}" data-task="${task.id}" data-subtask="${subtask.id}">
+                  <input type="date" value="${escapeHtml(subtask.actualDate || "")}" data-action="update-subtask-field" data-field="actualDate" data-ws="${ws.id}" data-task="${task.id}" data-subtask="${subtask.id}">
+                </div>` : `${subtask.description || subtask.targetDate || subtask.actualDate ? `<div class="subtask-detail">
+                  ${subtask.description ? `<span class="subtask-description">${escapeHtml(subtask.description)}</span>` : `<span></span>`}
+                  <span class="tag">Target: ${escapeHtml(subtask.targetDate || "-")}</span>
+                  <span class="tag">Actual: ${escapeHtml(subtask.actualDate || "-")}</span>
+                </div>` : ""}`}
+              </div>
             </div>
-          `).join("");
+          `;
+          }).join("");
           return `
             <div class="task ${task.done ? "done" : ""}">
               <input type="checkbox" ${task.done ? "checked" : ""} ${editable ? "" : "disabled"} data-action="toggle-task" data-ws="${ws.id}" data-task="${task.id}">
               <div class="task-main">
                 <div class="task-head">
-                  <span class="task-name">${escapeHtml(task.name)}${milestoneLabel ? `<span class="milestone-badge">${escapeHtml(milestoneLabel)}</span>` : ""}</span>
+                  <span class="task-name">${escapeHtml(task.name)}${blockerCount ? `<span class="blocker-badge">${blockerCount}</span>` : ""}</span>
                   <div class="task-side">
                     ${editable ? `<input value="${escapeHtml(task.owner || "")}" placeholder="Owner" data-action="update-task-owner" data-ws="${ws.id}" data-task="${task.id}">` : `<span class="tag">Owner: ${escapeHtml(task.owner || "-")}</span>`}
+                    ${editable ? `<select data-action="update-task-milestone" data-ws="${ws.id}" data-task="${task.id}">
+                      <option value="">No Milestone</option>
+                      ${milestoneOptions}
+                    </select>` : `<span class="tag">${escapeHtml(milestone ? milestone.name.split(" ")[0] : "No M")}</span>`}
                     <button class="progress-chip" type="button" data-action="open-task-progress" data-ws="${ws.id}" data-task="${task.id}">${taskPct}%</button>
+                    ${editable ? `<select data-action="set-task-status" data-ws="${ws.id}" data-task="${task.id}">
+                      <option value="green" ${task.status === "green" ? "selected" : ""}>🟢 Green / Done</option>
+                      <option value="yellow" ${task.status === "yellow" ? "selected" : ""}>🟡 Yellow / At Risk</option>
+                      <option value="red" ${task.status === "red" ? "selected" : ""}>🔴 Red / At Risk</option>
+                      <option value="blocked" ${task.status === "blocked" ? "selected" : ""}>⛔ Blocked / 卡点阻塞</option>
+                    </select>` : `<span class="tag">${statusLabel(task.status)} ${escapeHtml(task.status)}</span>`}
+                    ${editable ? `<span class="task-order">
+                      <button type="button" title="上移" ${taskIndex === 0 ? "disabled" : ""} data-action="move-task" data-direction="up" data-ws="${ws.id}" data-task="${task.id}">↑</button>
+                      <button type="button" title="下移" ${taskIndex === ws.tasks.length - 1 ? "disabled" : ""} data-action="move-task" data-direction="down" data-ws="${ws.id}" data-task="${task.id}">↓</button>
+                    </span>` : ""}
                     ${editable ? `<button class="icon" type="button" data-action="delete-task" data-ws="${ws.id}" data-task="${task.id}">×</button>` : ""}
                   </div>
                 </div>
                 ${editable ? `<textarea class="task-description-input" placeholder="任务描述 / scope / acceptance criteria" data-action="update-task-description" data-ws="${ws.id}" data-task="${task.id}">${escapeHtml(task.description || "")}</textarea>` : `${task.description ? `<div class="task-description">${escapeHtml(task.description)}</div>` : ""}`}
                 ${editable ? `
                   <div class="task-meta">
-                    <select data-action="update-task-milestone" data-ws="${ws.id}" data-task="${task.id}">
-                      <option value="">No Milestone</option>
-                      ${milestoneOptions}
-                    </select>
                     <input type="date" value="${escapeHtml(task.targetDate || "")}" data-action="update-task-date" data-field="targetDate" data-ws="${ws.id}" data-task="${task.id}">
                     <input type="date" value="${escapeHtml(task.actualDate || "")}" data-action="update-task-date" data-field="actualDate" data-ws="${ws.id}" data-task="${task.id}">
                   </div>
@@ -2231,6 +2732,14 @@
                 ${subtasks.length ? `<div class="subtask-list">${subtaskItems}</div>` : ""}
                 ${editable ? `<form class="subtask-form" data-action="add-subtask" data-ws="${ws.id}" data-task="${task.id}">
                   <input name="subtask" placeholder="新增子任务" required>
+                  <input name="owner" placeholder="Owner">
+                  <select name="milestone">
+                    <option value="">Milestone</option>
+                    ${renderMilestoneOptions(project, task.milestoneId || "")}
+                  </select>
+                  <input name="description" placeholder="描述">
+                  <input type="date" name="targetDate" aria-label="预计时间">
+                  <input type="date" name="actualDate" aria-label="实际时间">
                   <button type="submit">＋</button>
                 </form>` : ""}
               </div>
@@ -2241,13 +2750,13 @@
           <article class="panel workstream">
             <div class="workstream-top">
               <div class="workstream-title">
-                <span class="tag" contenteditable="${editable}" data-action="edit-workstream-field" data-ws="${ws.id}" data-field="owner">${escapeHtml(ws.owner)}</span>
                 <h4 contenteditable="${editable}" data-action="edit-workstream-field" data-ws="${ws.id}" data-field="name">${escapeHtml(ws.name)}</h4>
               </div>
               ${editable ? `<select class="status-select" data-action="set-ws-status" data-ws="${ws.id}">
                 <option value="green" ${ws.status === "green" ? "selected" : ""}>🟢 Green / On Track</option>
                 <option value="yellow" ${ws.status === "yellow" ? "selected" : ""}>🟡 Yellow / At Risk</option>
-                <option value="red" ${ws.status === "red" ? "selected" : ""}>🔴 Red / Blocked</option>
+                <option value="red" ${ws.status === "red" ? "selected" : ""}>🔴 Red / At Risk</option>
+                <option value="blocked" ${ws.status === "blocked" ? "selected" : ""}>⛔ Blocked / 卡点阻塞</option>
               </select>` : `<span class="tag">${statusLabel(ws.status)} ${escapeHtml(ws.status)}</span>`}
             </div>
             <div class="muted" contenteditable="${editable}" data-action="edit-workstream-field" data-ws="${ws.id}" data-field="goal">${escapeHtml(ws.goal)}</div>
@@ -2267,7 +2776,7 @@
             </form>` : ""}
           </article>
         `;
-      }).join("");
+      }).join("") : `<div class="empty">No tasks for ${escapeHtml(ownerFilter)}.</div>`;
     }
 
     function renderMilestones(project, editable) {
@@ -2276,7 +2785,8 @@
           ${editable ? `<select class="status-select" data-action="set-milestone-status" data-milestone="${m.id}">
             <option value="green" ${m.status === "green" ? "selected" : ""}>🟢 Green / Done</option>
             <option value="yellow" ${m.status === "yellow" ? "selected" : ""}>🟡 Yellow / At Risk</option>
-            <option value="red" ${m.status === "red" ? "selected" : ""}>🔴 Red / Blocked</option>
+            <option value="red" ${m.status === "red" ? "selected" : ""}>🔴 Red / At Risk</option>
+            <option value="blocked" ${m.status === "blocked" ? "selected" : ""}>⛔ Blocked / 卡点阻塞</option>
           </select>` : `<span class="tag">${statusLabel(m.status)} ${escapeHtml(m.status)}</span>`}
           <h4 contenteditable="${editable}" data-action="edit-milestone-field" data-milestone="${m.id}" data-field="name">${escapeHtml(m.name)}</h4>
           <p contenteditable="${editable}" data-action="edit-milestone-field" data-milestone="${m.id}" data-field="detail">${escapeHtml(m.detail)}</p>
@@ -2340,10 +2850,24 @@
       return findWorkstream(wsId)?.tasks.find((task) => task.id === taskId);
     }
 
+    function findSubtask(wsId, taskId, subtaskId) {
+      return (findTask(wsId, taskId)?.subtasks || []).find((subtask) => subtask.id === subtaskId);
+    }
+
+    function progressTarget(context) {
+      if (!context) return null;
+      const task = findTask(context.wsId, context.taskId);
+      if (!task) return null;
+      const item = context.subtaskId ? findSubtask(context.wsId, context.taskId, context.subtaskId) : task;
+      if (!item) return null;
+      return { task, item, isSubtask: Boolean(context.subtaskId) };
+    }
+
     function openProject(projectId) {
       activeProjectId = projectId;
       session.activeProjectId = projectId;
       saveSession(session);
+      activeOwnerFilter = "All";
       activeView = "overview";
       render();
     }
@@ -2625,9 +3149,11 @@
         const task = findTask(event.target.dataset.ws, event.target.dataset.task);
         task.progress = event.target.checked ? 100 : 0;
         task.done = event.target.checked;
+        task.status = event.target.checked ? "green" : "yellow";
         (task.subtasks || []).forEach((subtask) => {
           subtask.progress = task.progress;
           subtask.done = task.done;
+          subtask.status = task.status;
         });
       }
       if (action === "toggle-subtask") {
@@ -2635,10 +3161,22 @@
         const subtask = (task.subtasks || []).find((item) => item.id === event.target.dataset.subtask);
         subtask.progress = event.target.checked ? 100 : 0;
         subtask.done = event.target.checked;
+        subtask.status = event.target.checked ? "green" : "yellow";
         syncTaskDone(task);
       }
       if (action === "set-ws-status") {
         findWorkstream(event.target.dataset.ws).status = event.target.value;
+      }
+      if (action === "set-task-status") {
+        const task = findTask(event.target.dataset.ws, event.target.dataset.task);
+        task.childBlocked = false;
+        task.status = event.target.value;
+      }
+      if (action === "set-subtask-status") {
+        const task = findTask(event.target.dataset.ws, event.target.dataset.task);
+        const subtask = (task.subtasks || []).find((item) => item.id === event.target.dataset.subtask);
+        subtask.status = event.target.value;
+        syncTaskDone(task);
       }
       if (action === "set-milestone-status") {
         project.milestones.find((item) => item.id === event.target.dataset.milestone).status = event.target.value;
@@ -2656,16 +3194,25 @@
         const task = findTask(event.target.dataset.ws, event.target.dataset.task);
         task.progress = clampProgress(event.target.value);
         task.done = task.progress >= 100;
+        if (task.done) task.status = "green";
+        else if (task.status === "green") task.status = "yellow";
       }
       if (action === "update-subtask-progress") {
         const task = findTask(event.target.dataset.ws, event.target.dataset.task);
         const subtask = (task.subtasks || []).find((item) => item.id === event.target.dataset.subtask);
         subtask.progress = clampProgress(event.target.value);
         subtask.done = subtask.progress >= 100;
+        if (subtask.done) subtask.status = "green";
+        else if (subtask.status === "green") subtask.status = "yellow";
         syncTaskDone(task);
       }
       if (action === "update-task-date") {
         findTask(event.target.dataset.ws, event.target.dataset.task)[event.target.dataset.field] = event.target.value;
+      }
+      if (action === "update-subtask-field") {
+        const task = findTask(event.target.dataset.ws, event.target.dataset.task);
+        const subtask = (task.subtasks || []).find((item) => item.id === event.target.dataset.subtask);
+        subtask[event.target.dataset.field] = event.target.value.trim();
       }
       if (action === "update-milestone-date") {
         project.milestones.find((item) => item.id === event.target.dataset.milestone)[event.target.dataset.field] = event.target.value;
@@ -2689,8 +3236,33 @@
         return;
       }
 
+      if (action === "set-owner-filter") {
+        activeOwnerFilter = event.target.dataset.owner;
+        render();
+        return;
+      }
+
       if (action === "open-task-progress") {
-        openTaskProgress(event.target.dataset.ws, event.target.dataset.task);
+        openTaskProgress(event.target.dataset.ws, event.target.dataset.task, event.target.dataset.subtask || "");
+        return;
+      }
+
+      if (action === "add-progress-link") {
+        if (!canEditProject(currentProject())) return;
+        addProgressLinkRow();
+        return;
+      }
+
+      if (action === "remove-progress-link") {
+        if (!canEditProject(currentProject())) return;
+        const row = event.target.closest(".link-row");
+        if (!row) return;
+        const list = document.getElementById("progressLinkList");
+        if (list.children.length <= 1) {
+          row.querySelector("input").value = "";
+        } else {
+          row.remove();
+        }
         return;
       }
 
@@ -2710,11 +3282,22 @@
 
       const ws = findWorkstream(event.target.dataset.ws);
       if (!canEditProject(currentProject())) return;
+      if (action === "move-task") {
+        const taskIndex = ws.tasks.findIndex((task) => task.id === event.target.dataset.task);
+        const nextIndex = event.target.dataset.direction === "up" ? taskIndex - 1 : taskIndex + 1;
+        if (taskIndex < 0 || nextIndex < 0 || nextIndex >= ws.tasks.length) return;
+        const [task] = ws.tasks.splice(taskIndex, 1);
+        ws.tasks.splice(nextIndex, 0, task);
+        saveAndRender();
+        return;
+      }
       if (action === "delete-task") {
+        if (!confirm("确认删除这个工作项？相关子任务和进度记录也会一起删除。")) return;
         ws.tasks = ws.tasks.filter((task) => task.id !== event.target.dataset.task);
         saveAndRender();
       }
       if (action === "delete-subtask") {
+        if (!confirm("确认删除这个子任务？相关进度记录也会一起删除。")) return;
         const task = findTask(event.target.dataset.ws, event.target.dataset.task);
         task.subtasks = (task.subtasks || []).filter((subtask) => subtask.id !== event.target.dataset.subtask);
         syncTaskDone(task);
@@ -2732,9 +3315,20 @@
         const task = findTask(event.target.dataset.ws, event.target.dataset.task);
         const input = event.target.querySelector('input[name="subtask"]');
         task.subtasks = task.subtasks || [];
-        task.subtasks.push({ id: crypto.randomUUID(), name: input.value.trim(), progress: 0, done: false });
+        task.subtasks.push({
+          id: crypto.randomUUID(),
+          name: input.value.trim(),
+          description: event.target.querySelector('input[name="description"]').value.trim(),
+          owner: event.target.querySelector('input[name="owner"]').value.trim(),
+          milestoneId: event.target.querySelector('select[name="milestone"]').value,
+          status: "yellow",
+          targetDate: event.target.querySelector('input[name="targetDate"]').value,
+          actualDate: event.target.querySelector('input[name="actualDate"]').value,
+          progress: 0,
+          done: false
+        });
         syncTaskDone(task);
-        input.value = "";
+        event.target.reset();
         saveAndRender();
         return;
       }
@@ -2745,6 +3339,7 @@
         name: event.target.querySelector('input[name="task"]').value.trim(),
         description: event.target.querySelector('input[name="description"]').value.trim(),
         owner: event.target.querySelector('input[name="owner"]').value.trim(),
+        status: "yellow",
         milestoneId: event.target.querySelector('select[name="milestone"]').value,
         targetDate: event.target.querySelector('input[name="targetDate"]').value,
         actualDate: event.target.querySelector('input[name="actualDate"]').value,
@@ -2783,29 +3378,41 @@
       event.preventDefault();
       const project = currentProject();
       if (!canEditProject(project) || !activeTaskContext) return;
-      const task = findTask(activeTaskContext.wsId, activeTaskContext.taskId);
-      if (!task) return;
+      const target = progressTarget(activeTaskContext);
+      if (!target) return;
+      const { task, item } = target;
       const files = [...document.getElementById("progressAttachments").files];
       const attachments = [];
       for (const file of files) {
         attachments.push(await readAttachment(file));
       }
+      attachments.push(...readProgressLinks());
       const progress = clampProgress(document.getElementById("progressValue").value);
-      task.progressLogs = task.progressLogs || [];
-      task.progressLogs.push({
+      const blocker = document.getElementById("progressBlocker").value.trim();
+      const submittedStatus = document.getElementById("progressStatus").value;
+      const nextStatus = blocker || submittedStatus === "blocked" ? "blocked" : submittedStatus;
+      item.progressLogs = item.progressLogs || [];
+      item.progressLogs.push({
         id: crypto.randomUUID(),
         date: new Date().toISOString(),
         submitterName: document.getElementById("progressSubmitter").value.trim(),
         progress,
+        status: nextStatus,
         note: document.getElementById("progressNote").value.trim(),
+        nextAction: document.getElementById("progressNextAction").value.trim(),
+        blocker,
+        supportNeeded: document.getElementById("progressSupportNeeded").value.trim(),
         attachments
       });
-      task.progress = progress;
+      item.progress = progress;
+      item.done = progress >= 100;
+      item.status = nextStatus;
+      if (!target.isSubtask) item.childBlocked = false;
       syncTaskDone(task);
       saveStore();
       syncProject(project);
       render();
-      openTaskProgress(activeTaskContext.wsId, activeTaskContext.taskId);
+      openTaskProgress(activeTaskContext.wsId, activeTaskContext.taskId, activeTaskContext.subtaskId || "");
     });
 
     document.getElementById("exportBtn").addEventListener("click", () => {
