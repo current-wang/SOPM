@@ -421,12 +421,14 @@
     }
 
     .workstream-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: 1fr;
+      align-items: start;
     }
 
     .workstream {
       padding: 15px;
       display: grid;
+      align-content: start;
       gap: 12px;
       min-height: 260px;
     }
@@ -1212,12 +1214,6 @@
     @media (min-width: 1680px) {
       .workstream-grid {
         grid-template-columns: repeat(2, minmax(560px, 1fr));
-      }
-    }
-
-    @media (max-width: 1380px) {
-      .workstream-grid {
-        grid-template-columns: 1fr;
       }
     }
 
